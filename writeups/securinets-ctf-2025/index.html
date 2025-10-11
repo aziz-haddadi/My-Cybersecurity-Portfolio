@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Securinets CTF Quals 2025 - Forensics Writeup</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="nav-brand">← Back to Portfolio</a>
+            <div class="nav-links">
+                <a href="#overview">Overview</a>
+                <a href="#challenges">Challenges</a>
+                <a href="#tools">Tools</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <img src="assets/images/banner.png" alt="Securinets CTF Banner" class="hero-image">
+        <div class="hero-content">
+            <h1>Securinets CTF Quals 2025</h1>
+            <p class="hero-subtitle">Forensics Challenges Writeup</p>
+            <div class="hero-meta">
+                <span class="badge">Team: Mojo Jojo</span>
+                <span class="badge">38th Place (5th place on north Africa)</span>
+                <span class="badge">Category: Forensics</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="overview" class="section">
+            <h2 class="section-title">Overview</h2>
+            <div class="content-card">
+                <p>This writeup documents my approach to solving one complex forensics challenges from Securinets CTF Quals 2025, where I competed with <strong>Team Mojo Jojo</strong> and achieved <strong>38th place and 5th in north africa</strong>.</p>
+                
+                <p>The challenges required a combination of:</p>
+                <ul>
+                    <li>Windows disk forensics and registry analysis</li>
+                    <li>Memory dump analysis with Volatility</li>
+                    <li>Malware investigation and behavioral analysis</li>
+                </ul>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>2</h3>
+                        <p>Challenges Solved</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>15+</h3>
+                        <p>Questions Answered</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>10+</h3>
+                        <p>Tools Used</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>6th</h3>
+                        <p>Place Finish</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="challenges" class="section">
+            <h2 class="section-title">Challenges</h2>
+            
+            <div class="challenge-grid">
+                <div class="challenge-card">
+                    <div class="challenge-header">
+                        <span class="challenge-number">01</span>
+                        <h3>Silent Visitor</h3>
+                    </div>
+                    <div class="challenge-image">
+                        <img src="assets/images/silent-visitor/registry-analysis.jpg.png" alt="Silent Visitor Challenge">
+                    </div>
+                    <div class="challenge-content">
+                        <p class="challenge-description">
+                            A user reported suspicious activity on their Windows workstation. Investigation of a disk image revealed a sophisticated malware delivery chain through a malicious npm package.
+                        </p>
+                        
+                        <h4>Key Findings:</h4>
+                        <ul>
+                            <li>Phishing email with GitHub repository link</li>
+                            <li>Malware delivered via tmpfiles.org</li>
+                            <li>Go-based RAT with C2 communication</li>
+                            <li>Registry persistence mechanism</li>
+                            <li>Hardcoded authentication tokens</li>
+                        </ul>
+
+                        <h4>Techniques Used:</h4>
+                        <div class="tags">
+                            <span class="tag">Registry Forensics</span>
+                            <span class="tag">Email Analysis</span>
+                            <span class="tag">Malware Analysis</span>
+                            <span class="tag">VirusTotal</span>
+                            <span class="tag">any.run</span>
+                        </div>
+
+                        <a href="silent-visitor.html" class="btn-primary">Read Full Writeup →</a>
+                    </div>
+                </div>
+
+                
+            </div>
+        </section>
+
+        <section id="tools" class="section">
+            <h2 class="section-title">Tools & Technologies</h2>
+            <div class="tools-grid">
+                <div class="tool-category">
+                    <h3>Disk Forensics</h3>
+                    <ul>
+                        <li>FTK Imager</li>
+                        <li>Autopsy</li>
+                        <li>Registry Explorer</li>
+                        <li>RegRipper</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Malware Analysis</h3>
+                    <ul>
+                        <li>VirusTotal</li>
+                        <li>any.run</li>
+                        <li>strings utility</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Key Takeaways</h2>
+            <div class="takeaways-grid">
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">🔍</div>
+                    <h3>Layered Analysis</h3>
+                    <p>Success required combining multiple forensics disciplines - disk, memory, and reverse engineering to piece together the complete picture.</p>
+                </div>
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">🧠</div>
+                    <h3>Memory is Critical</h3>
+                    <p>Runtime data like command-line arguments and environment variables often only exist in memory and are crucial for investigation.</p>
+                </div>
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">🔗</div>
+                    <h3>Artifact Correlation</h3>
+                    <p>Correlating evidence across different sources (disk, memory, network) creates a complete attack timeline.</p>
+                </div>
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">⚡</div>
+                    <h3>Dynamic Analysis</h3>
+                    <p>When static analysis is challenging (e.g., Go malware), dynamic analysis platforms become essential tools.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section cta-section">
+            <h2>Want to Learn More?</h2>
+            <p>Check out the detailed writeups for step-by-step walkthroughs of each challenge.</p>
+            <div class="cta-buttons">
+                <a href="silent-visitor.html" class="btn-primary">Silent Visitor Writeup</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 Aziz Haddadi | Cybersecurity Portfolio</p>
+            <div class="footer-links">
+                <a href="https://www.linkedin.com/in/aziz-haddadi-825209288" target="_blank">LinkedIn</a>
+                <a href="https://github.com/aziz-haddadi" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
