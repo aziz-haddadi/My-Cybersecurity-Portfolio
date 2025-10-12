@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost File - Securinets CTF 2025</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">← Back to Overview</a>
+            <div class="nav-links">
+                <a href="#scenario">Scenario</a>
+                <a href="#analysis">Analysis</a>
+                <a href="#memory-forensics">Memory Forensics</a>
+                <a href="#decryption">Decryption</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Lost File</h1>
+            <p class="hero-subtitle">Memory Forensics & Cryptographic Analysis</p>
+            <div class="hero-meta">
+                <span class="badge">Challenge 2</span>
+                <span class="badge">Memory Forensics</span>
+                <span class="badge">Reverse Engineering</span>
+                <span class="badge">Cryptography</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="scenario" class="section">
+            <h2 class="section-title">Challenge Scenario</h2>
+            <div class="content-card">
+                <p><strong>Description:</strong> My friend told me to run this executable, but it turns out he just wanted to encrypt my precious file. And to make things worse, I don't even remember what password I used. 😥 Good thing I have this memory capture taken at a very convenient moment, right?</p>
+                
+                <div class="warning">
+                    <strong>Artifacts Provided:</strong> We're given a disk image containing an executable and encrypted file, plus a memory dump captured during the encryption process.
+                </div>
+            </div>
+        </section>
+
+        <section id="analysis" class="section">
+            <h2 class="section-title">Initial Investigation</h2>
+
+            <div class="step-container">
+                <!-- Step 1: Desktop Analysis -->
+                <div class="step">
+                    <h3>Discovering the Files</h3>
+                    <p>Examining the desktop, we find two critical files:</p>
+                    
+                    <img src="assets/images/lost-file/desktop-files.png" alt="Desktop files">
+                    
+                    <div class="finding">
+                        <strong>Files Found:</strong><br>
+                        • <code>locker_sim.exe</code> - The encryption executable<br>
+                        • <code>to_encrypt.txt.enc</code> - The encrypted file
+                    </div>
+
+                    <p>The executable is written in C, so we can use IDA Pro to analyze its functionality and understand the encryption mechanism.</p>
+                </div>
+
+                <!-- Step 2: Code Analysis -->
+                <div class="step">
+                    <h3>Reverse Engineering the Executable</h3>
+                    <p>Using IDA Pro, we decompile the executable and analyze the main function. Here's the complete decompiled code:</p>
+
+                    <div class="command-box">
+                        <div class="output">int __cdecl main(int argc, const char **argv, const char **envp)
+{
+  size_t v4; // ebx
+  size_t v5; // eax
+  char FileName[260]; // [esp+14h] [ebp-694h] BYREF
+  size_t ElementCount; // [esp+118h] [ebp-590h] BYREF
+  void *v8; // [esp+11Ch] [ebp-58Ch] BYREF
+  size_t v9; // [esp+120h] [ebp-588h] BYREF
+  void *Src; // [esp+124h] [ebp-584h] BYREF
+  char v11[260]; // [esp+128h] [ebp-580h] BYREF
+  BYTE v12[4]; // [esp+22Ch] [ebp-47Ch] BYREF
+  int v13; // [esp+230h] [ebp-478h]
+  int v14; // [esp+234h] [ebp-474h]
+  int v15; // [esp+238h] [ebp-470h]
+  BYTE v16[4]; // [esp+23Ch] [ebp-46Ch] BYREF
+  int v17; // [esp+240h] [ebp-468h]
+  int v18; // [esp+244h] [ebp-464h]
+  int v19; // [esp+248h] [ebp-460h]
+  int v20; // [esp+25Ch] [ebp-44Ch] BYREF
+  void *Block; // [esp+260h] [ebp-448h] BYREF
+  char Buffer[260]; // [esp+264h] [ebp-444h] BYREF
+  CHAR Filename[260]; // [esp+368h] [ebp-340h] BYREF
+  char Str[260]; // [esp+46Ch] [ebp-23Ch] BYREF
+  char Destination[256]; // [esp+570h] [ebp-138h] BYREF
+  FILE *Stream; // [esp+670h] [ebp-38h]
+  BYTE *pbData; // [esp+674h] [ebp-34h]
+  size_t Size; // [esp+678h] [ebp-30h]
+  size_t v29; // [esp+67Ch] [ebp-2Ch]
+  DWORD ModuleFileNameA; // [esp+680h] [ebp-28h]
+  char *v31; // [esp+684h] [ebp-24h]
+  size_t Count; // [esp+688h] [ebp-20h]
+  CHAR *i; // [esp+68Ch] [ebp-1Ch]
+  int *p_argc; // [esp+69Ch] [ebp-Ch]
+  
+  p_argc = &argc;
+  __main();
+  if ( argc <= 1 )
+    return 1;
+  v31 = (char *)argv[1];
+  memset(Destination, 0, sizeof(Destination));
+  if ( read_computername_from_registry((LPBYTE)Destination, 256) )
+  {
+    strncpy(Destination, "UNKNOWN_HOST", 0xFFu);
+    Destination[255] = 0;
+  }
+  fflush(&__iob[1]);
+  memset(Str, 0, sizeof(Str));
+  memset(Filename, 0, sizeof(Filename));
+  ModuleFileNameA = GetModuleFileNameA(0, Filename, 0x104u);
+  if ( !ModuleFileNameA || ModuleFileNameA > 0x103 )
+    goto LABEL_18;
+  for ( i = &Filename[ModuleFileNameA - 1]; i >= Filename && *i != 92 && *i != 47; --i )
+    ;
+  if ( i >= Filename )
+  {
+    Count = i - Filename;
+    if ( i == Filename )
+    {
+      strncpy(Str, Filename, 0x103u);
+      Str[259] = 0;
+    }
+    else
+    {
+      if ( Count > 0x103 )
+        Count = 259;
+      strncpy(Str, Filename, Count);
+      Str[Count] = 0;
+    }
+  }
+  else
+  {
+LABEL_18:
+    strcpy(Str, ".");
+  }
+  v29 = strlen(Str);
+  if ( v29 && (Str[v29 - 1] == 92 || Str[v29 - 1] == 47) )
+    snprintf(Buffer, 0x104u, "%ssecret_part.txt", Str);
+  else
+    snprintf(Buffer, 0x104u, "%s\\secret_part.txt", Str);
+  Block = 0;
+  v20 = 0;
+  read_file_to_buffer(Buffer, (int)&Block, (int)&v20);
+  DeleteFileA(Buffer);
+  v4 = strlen(v31);
+  Size = v4 + strlen(Destination) + v20 + 10;
+  pbData = (BYTE *)malloc(Size);
+  if ( v20 )
+    snprintf((char *const)pbData, Size, "%s|%s|%s", v31, Destination, (const char *)Block);
+  else
+    snprintf((char *const)pbData, Size, "%s|%s|", v31, Destination);
+  v5 = strlen((const char *)pbData);
+  if ( sha256_buf(pbData, v5, v16) )
+  {
+    puts("SHA256 failed");
+    return 1;
+  }
+  else
+  {
+    *(_DWORD *)v12 = *(_DWORD *)v16;
+    v13 = v17;
+    v14 = v18;
+    v15 = v19;
+    if ( Str[strlen(Str) - 1] == 92 || Str[strlen(Str) - 1] == 47 )
+      snprintf(v11, 0x104u, "%sto_encrypt.txt", Str);
+    else
+      snprintf(v11, 0x104u, "%s\\to_encrypt.txt", Str);
+    Src = 0;
+    v9 = 0;
+    if ( read_file_to_buffer(v11, (int)&Src, (int)&v9) )
+    {
+      printf("Target file not found: %s\n", v11);
+      return 1;
+    }
+    else
+    {
+      v8 = 0;
+      ElementCount = 0;
+      if ( aes256_encrypt_simple((int)v16, v12, Src, v9, (int)&v8, (int)&ElementCount) )
+      {
+        puts("Encryption failed");
+        return 1;
+      }
+      else
+      {
+        if ( Str[strlen(Str) - 1] == 92 || Str[strlen(Str) - 1] == 47 )
+          snprintf(FileName, 0x104u, "%sto_encrypt.txt.enc", Str);
+        else
+          snprintf(FileName, 0x104u, "%s\\to_encrypt.txt.enc", Str);
+        Stream = fopen(FileName, "wb");
+        if ( Stream )
+        {
+          fwrite(v8, 1u, ElementCount, Stream);
+          fclose(Stream);
+          if ( Block )
+            free(Block);
+          if ( Src )
+            free(Src);
+          if ( v8 )
+            free(v8);
+          free(pbData);
+          return 0;
+        }
+        else
+        {
+          return 1;
+        }
+      }
+    }
+  }
+}</div>
+                    </div>
+
+                    <h4>Step-by-step Analysis of the Encryption Process</h4>
+                    
+                    <p><strong>The executable performs the following operations:</strong></p>
+                    
+                    <div class="finding">
+                        <strong>1. Takes a command-line argument</strong> <code>argv[1]</code> (the password)<br><br>
+                        
+                        <strong>2. Reads the computer name</strong> from registry or defaults to <code>UNKNOWN_HOST</code><br><br>
+                        
+                        <strong>3. Reads a file called</strong> <code>secret_part.txt</code> (then deletes it afterward!)<br><br>
+                        
+                        <strong>4. Combines these into one string:</strong><br>
+                        <code>&lt;argv[1]&gt;|&lt;COMPUTERNAME&gt;|&lt;secret_part_contents&gt;</code><br>
+                        or if no secret part: <code>&lt;argv[1]&gt;|&lt;COMPUTERNAME&gt;|</code><br><br>
+                        
+                        <strong>5. Computes SHA256:</strong><br>
+                        <code>sha256_buf(pbData, v5, v16)</code><br>
+                        So <code>v16</code> = SHA256 hash of the combined string<br><br>
+                        
+                        <strong>6. Creates the AES-256 key:</strong><br>
+                        Copies the first 32 bytes (256 bits) of the SHA256 hash into <code>v12, v13, v14, v15</code><br><br>
+                        
+                        <strong>7. Encrypts the file</strong> <code>to_encrypt.txt</code> using:<br>
+                        <code>aes256_encrypt_simple((int)v16, v12, Src, v9, (int)&v8, (int)&ElementCount)</code><br>
+                        and writes the result as <code>to_encrypt.txt.enc</code>
+                    </div>
+
+                    <div class="warning">
+                        <strong>⚠️ To decrypt, we need three components:</strong>
+                        <ol style="margin-top: 1rem; padding-left: 1.5rem;">
+                            <li><code>argv[1]</code> - The command-line argument (password)</li>
+                            <li><code>COMPUTERNAME</code> - The hostname</li>
+                            <li>Content of <code>secret_part.txt</code> (the deleted file)</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="memory-forensics" class="section">
+            <h2 class="section-title">Memory Forensics with Volatility</h2>
+
+            <div class="step-container">
+                <!-- Finding argv[1] -->
+                <div class="step">
+                    <h3>Finding the Command-Line Argument (Password)</h3>
+                    <p>Using Volatility's <code>consoles</code> plugin, we can extract the command history to find how the executable was run:</p>
+
+                    <div class="command-box">
+                        <div class="command">python2 volatility/vol.py -f mem.vmem --profile=WinXPSP2x86 consoles</div>
+                        <div class="output">Output:
+C:\Documents and Settings\RagdollFan2005\Desktop>locker_sim.exe hmmisitreallyts</div>
+                    </div>
+
+                    <img src="assets/images/lost-file/volatility-consoles.png" alt="Volatility consoles output">
+
+                    <div class="finding">
+                        <strong>Password Found (argv[1]):</strong> <code>hmmisitreallyts</code>
+                    </div>
+                </div>
+
+                <!-- Finding Hostname -->
+                <div class="step">
+                    <h3>Finding the Computer Name (Hostname)</h3>
+                    <p>Using the <code>envars</code> plugin to extract environment variables and locate the computer name:</p>
+
+                    <div class="command-box">
+                        <div class="command">python2 volatility/vol.py -f mem.vmem --profile=WinXPSP2x86 envars</div>
+                    </div>
+
+                    <img src="assets/images/lost-file/envars-output.png" alt="Environment variables output">
+
+                    <div class="finding">
+                        <strong>Hostname Found:</strong> <code>RAGDOLLF-F9AC5A</code>
+                    </div>
+                </div>
+
+                <!-- Finding Secret Part -->
+                <div class="step">
+                    <h3>Recovering the Deleted File</h3>
+                    <p>The last piece is the content of <code>secret_part.txt</code> which was deleted. Since it was deleted, we can check the Recycle Bin:</p>
+
+                    
+
+                    <div class="finding">
+                        <strong>Secret Part Content(found in /home/kali/Desktop/quals/RECYCLER/S-1-5-21-682003330-706699826-1417001333-1003/Dc1.txt):</strong> <code>sigmadroid</code>
+                    </div>
+
+                    <p>Perfect! We now have all three components needed for decryption.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="decryption" class="section">
+            <h2 class="section-title">Decryption & Flag Extraction</h2>
+
+            <div class="step-container">
+                <!-- Decryption Script -->
+                <div class="step">
+                    <h3>Writing the Decryption Script</h3>
+                    <p>Now that we have all the components, we can write a Python script to decrypt the file:</p>
+
+                    <div class="command-box">
+                        <div class="output">import hashlib
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+
+def derive_key(arg, computername, secret_part):
+    data = f"{arg}|{computername}|{secret_part}"
+    sha = hashlib.sha256(data.encode()).digest()
+    return sha
+
+def decrypt_file(enc_path, out_path, arg, computername="UNKNOWN_HOST", secret_part=""):
+    key = derive_key(arg, computername, secret_part)
+    iv = key[:16]
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    
+    with open(enc_path, "rb") as f:
+        ciphertext = f.read()
+    
+    plaintext = unpad(cipher.decrypt(ciphertext), AES.block_size)
+    
+    with open(out_path, "wb") as f:
+        f.write(plaintext)
+    
+    print(f"[+] Decrypted -> {out_path}")
+
+decrypt_file(
+    "to_encrypt.txt.enc",
+    "to_encrypt_decrypted.txt",
+    arg="hmmisitreallyts",
+    computername="RAGDOLLF-F9AC5A",
+    secret_part="sigmadroid"
+)</div>
+                    </div>
+
+                    <div class="finding">
+                        <strong>✅ Decryption Successful!</strong>
+                    </div>
+                </div>
+
+                <!-- Flag Extraction -->
+                <div class="step">
+                    <h3>Extracting the Flag</h3>
+                    <p>After running the decryption script, we get the output:</p>
+
+                    <div class="command-box">
+                        <div class="output">Vm14U1MxWXlSblJWYkd4VVltdEtjRmxzV2xwa01XdzJWR3BDYkdKSGREWlZNakUwV1ZaYU5sVnViRnBOYWtaWVdXMHhSMWRXVW5GUmJYQnBZbGhTTlZkWGVHdFpWVEZIVVdwYVVGWkhjems9</div>
+                    </div>
+
+                    <p>This appears to be Base64 encoded. Let's decode it:</p>
+
+                    <div class="hash-display">
+                        🎉 FLAG: Securinets{screen+registry+mft??}
+                    </div>
+
+                    <p>Challenge solved! The flag references the forensics techniques used: screen capture (memory dump), registry analysis, and MFT (Master File Table) for file recovery.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Investigation Summary</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>3</h3>
+                    <p>Key Components</p>
+                </div>
+                <div class="stat-card">
+                    <h3>2</h3>
+                    <p>Artifacts Analyzed</p>
+                </div>
+                <div class="stat-card">
+                    <h3>AES-256</h3>
+                    <p>Encryption Type</p>
+                </div>
+                <div class="stat-card">
+                    <h3>SHA256</h3>
+                    <p>Hash Function</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Tools & Techniques</h2>
+            <div class="tools-grid">
+                <div class="tool-category">
+                    <h3>Reverse Engineering</h3>
+                    <ul>
+                        <li>IDA Pro</li>
+                        <li>Static Analysis</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Memory Forensics</h3>
+                    <ul>
+                        <li>Volatility Framework</li>
+                        <li>consoles plugin</li>
+                        <li>envars plugin</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Disk Forensics</h3>
+                    <ul>
+                        <li>Recycle Bin Analysis</li>
+                        <li>File Recovery</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Cryptography</h3>
+                    <ul>
+                        <li>Python PyCryptodome</li>
+                        <li>AES Decryption</li>
+                        <li>Base64 Decoding</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section cta-section">
+            <h2>Explore More Challenges</h2>
+            <p>Check out other forensics writeups from Securinets CTF 2025.</p>
+            <div class="cta-buttons">
+                <a href="silent-visitor.html" class="btn-primary">← Silent Visitor</a>
+                <a href="index.html" class="btn-secondary">Back to Overview</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 Aziz Haddadi | Cybersecurity Portfolio</p>
+            <div class="footer-links">
+                <a href="https://www.linkedin.com/in/aziz-haddadi-825209288" target="_blank">LinkedIn</a>
+                <a href="https://github.com/aziz-haddadi" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <button class="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const scrollBtn = document.querySelector('.scroll-top');
+            if (window.pageYOffset > 300) {
+                scrollBtn.classList.add('visible');
+            } else {
+                scrollBtn.classList.remove('visible');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -26,7 +26,7 @@
             <p class="hero-subtitle">Forensics Challenges Writeup</p>
             <div class="hero-meta">
                 <span class="badge">Team: Mojo Jojo</span>
-                <span class="badge">38th Place (5th place on north Africa)</span>
+                <span class="badge">38th Place (5th in North Africa)</span>
                 <span class="badge">Category: Forensics</span>
             </div>
         </div>
@@ -36,13 +36,14 @@
         <section id="overview" class="section">
             <h2 class="section-title">Overview</h2>
             <div class="content-card">
-                <p>This writeup documents my approach to solving one complex forensics challenges from Securinets CTF Quals 2025, where I competed with <strong>Team Mojo Jojo</strong> and achieved <strong>38th place and 5th in north africa</strong>.</p>
+                <p>This writeup documents my approach to solving two complex forensics challenges from Securinets CTF Quals 2025, where I competed with <strong>Team Mojo Jojo</strong> and achieved <strong>38th place and 5th in North Africa</strong>.</p>
                 
                 <p>The challenges required a combination of:</p>
                 <ul>
                     <li>Windows disk forensics and registry analysis</li>
                     <li>Memory dump analysis with Volatility</li>
                     <li>Malware investigation and behavioral analysis</li>
+                    <li>Reverse engineering and cryptographic analysis</li>
                 </ul>
 
                 <div class="stats-grid">
@@ -59,7 +60,7 @@
                         <p>Tools Used</p>
                     </div>
                     <div class="stat-card">
-                        <h3>6th</h3>
+                        <h3>38th</h3>
                         <p>Place Finish</p>
                     </div>
                 </div>
@@ -70,6 +71,7 @@
             <h2 class="section-title">Challenges</h2>
             
             <div class="challenge-grid">
+                <!-- Challenge Card 1: Silent Visitor -->
                 <div class="challenge-card">
                     <div class="challenge-header">
                         <span class="challenge-number">01</span>
@@ -105,7 +107,41 @@
                     </div>
                 </div>
 
-                
+                <!-- Challenge Card 2: Lost File -->
+                <div class="challenge-card">
+                    <div class="challenge-header">
+                        <span class="challenge-number">02</span>
+                        <h3>Lost File</h3>
+                    </div>
+                    <div class="challenge-image">
+                        <img src="assets/images/lost-file/banner.png" alt="Lost File Challenge">
+                    </div>
+                    <div class="challenge-content">
+                        <p class="challenge-description">
+                            A ransomware-style challenge involving file encryption. Analyze a memory dump and disk image to recover encryption key components and decrypt the target file.
+                        </p>
+                        
+                        <h4>Key Findings:</h4>
+                        <ul>
+                            <li>Custom C-based encryption executable</li>
+                            <li>AES-256 CBC encryption with SHA256 key derivation</li>
+                            <li>Command-line arguments recovered from memory</li>
+                            <li>Deleted file recovered from Recycle Bin</li>
+                            <li>Multi-component key reconstruction</li>
+                        </ul>
+
+                        <h4>Techniques Used:</h4>
+                        <div class="tags">
+                            <span class="tag">Memory Forensics</span>
+                            <span class="tag">Reverse Engineering</span>
+                            <span class="tag">IDA Pro</span>
+                            <span class="tag">Volatility</span>
+                            <span class="tag">Cryptography</span>
+                        </div>
+
+                        <a href="lost-file.html" class="btn-primary">Read Full Writeup →</a>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -122,11 +158,26 @@
                     </ul>
                 </div>
                 <div class="tool-category">
+                    <h3>Memory Analysis</h3>
+                    <ul>
+                        <li>Volatility Framework</li>
+                        <li>MemProcFS</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
                     <h3>Malware Analysis</h3>
                     <ul>
                         <li>VirusTotal</li>
                         <li>any.run</li>
                         <li>strings utility</li>
+                        <li>IDA Pro</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Programming</h3>
+                    <ul>
+                        <li>Python</li>
+                        <li>PyCryptodome</li>
                     </ul>
                 </div>
             </div>
@@ -163,6 +214,7 @@
             <p>Check out the detailed writeups for step-by-step walkthroughs of each challenge.</p>
             <div class="cta-buttons">
                 <a href="silent-visitor.html" class="btn-primary">Silent Visitor Writeup</a>
+                <a href="lost-file.html" class="btn-primary">Lost File Writeup</a>
             </div>
         </section>
     </main>
