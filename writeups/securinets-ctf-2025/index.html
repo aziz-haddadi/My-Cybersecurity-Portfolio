@@ -36,27 +36,28 @@
         <section id="overview" class="section">
             <h2 class="section-title">Overview</h2>
             <div class="content-card">
-                <p>This writeup documents my approach to solving two complex forensics challenges from Securinets CTF Quals 2025, where I competed with <strong>Team Mojo Jojo</strong> and achieved <strong>38th place and 5th in North Africa</strong>.</p>
+                <p>This writeup documents my approach to solving three complex forensics challenges from Securinets CTF Quals 2025, where I competed with <strong>Team Mojo Jojo</strong> and achieved <strong>38th place and 5th in North Africa</strong>.</p>
                 
                 <p>The challenges required a combination of:</p>
                 <ul>
                     <li>Windows disk forensics and registry analysis</li>
                     <li>Memory dump analysis with Volatility</li>
+                    <li>Data recovery and file system forensics</li>
                     <li>Malware investigation and behavioral analysis</li>
                     <li>Reverse engineering and cryptographic analysis</li>
                 </ul>
 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <h3>2</h3>
+                        <h3>3</h3>
                         <p>Challenges Solved</p>
                     </div>
                     <div class="stat-card">
-                        <h3>15+</h3>
+                        <h3>20+</h3>
                         <p>Questions Answered</p>
                     </div>
                     <div class="stat-card">
-                        <h3>10+</h3>
+                        <h3>15+</h3>
                         <p>Tools Used</p>
                     </div>
                     <div class="stat-card">
@@ -104,8 +105,8 @@
                     </div>
                 </div>
 
-                <!-- Challenge Card 2: Lost File -->
-                <div class="challenge-card">
+                <!-- Challenge Card 2: Recovery -->
+                 <div class="challenge-card">
                     <div class="challenge-header">
                         <span class="challenge-number">02</span>
                         <h3>Lost File</h3>
@@ -136,6 +137,41 @@
                         <a href="lost-file.html" class="btn-primary">Read Full Writeup →</a>
                     </div>
                 </div>
+                 <!-- Challenge Card 3: Lost File -->
+                <div class="challenge-card">
+                    <div class="challenge-header">
+                        <span class="challenge-number">03</span>
+                        <h3>Recovery</h3>
+                    </div>
+                    <div class="challenge-content">
+                        <p class="challenge-description">
+                            A critical file has been deleted from a storage device. Perform data recovery, analyze file system metadata, and decrypt hidden data using inode timestamps.
+                        </p>
+                        
+                        <h4>Key Findings:</h4>
+                        <ul>
+                            <li>Deleted ZIP archive recovery</li>
+                            <li>Inode timestamp analysis for key derivation</li>
+                            <li>XOR encryption with metadata-based key</li>
+                            <li>Steganographic data hiding technique</li>
+                            <li>Multi-layer obfuscation strategy</li>
+                        </ul>
+
+                        <h4>Techniques Used:</h4>
+                        <div class="tags">
+                            <span class="tag">File System Forensics</span>
+                            <span class="tag">Data Recovery</span>
+                            <span class="tag">Autopsy</span>
+                            <span class="tag">PhotoRec</span>
+                            <span class="tag">Cryptography</span>
+                        </div>
+
+                        <a href="recovery.html" class="btn-primary">Read Full Writeup →</a>
+                    </div>
+                </div>
+
+               
+                
             </div>
         </section>
 
@@ -149,6 +185,8 @@
                         <li>Autopsy</li>
                         <li>Registry Explorer</li>
                         <li>RegRipper</li>
+                        <li>PhotoRec/TestDisk</li>
+                        <li>debugfs</li>
                     </ul>
                 </div>
                 <div class="tool-category">
@@ -200,6 +238,16 @@
                     <h3>Dynamic Analysis</h3>
                     <p>When static analysis is challenging (e.g., Go malware), dynamic analysis platforms become essential tools.</p>
                 </div>
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">💾</div>
+                    <h3>Metadata Matters</h3>
+                    <p>File system metadata like inode timestamps can contain hidden information critical for solving challenges.</p>
+                </div>
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">🔐</div>
+                    <h3>Crypto Understanding</h3>
+                    <p>Understanding encryption algorithms and key derivation methods is essential for data recovery challenges.</p>
+                </div>
             </div>
         </section>
 
@@ -208,6 +256,7 @@
             <p>Check out the detailed writeups for step-by-step walkthroughs of each challenge.</p>
             <div class="cta-buttons">
                 <a href="silent-visitor.html" class="btn-primary">Silent Visitor Writeup</a>
+                <a href="recovery.html" class="btn-primary">Recovery Writeup</a>
                 <a href="lost-file.html" class="btn-primary">Lost File Writeup</a>
             </div>
         </section>
