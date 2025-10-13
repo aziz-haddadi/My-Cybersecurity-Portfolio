@@ -410,30 +410,6 @@ footer {
     border-top: 1px solid rgba(0, 255, 157, 0.2);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .hero-content h1 {
-        font-size: 2.5rem;
-    }
-
-    .hero-content h2 {
-        font-size: 1.5rem;
-    }
-
-    .nav-links {
-        gap: 1rem;
-    }
-
-    section {
-        padding: 4rem 5%;
-    }
-
-    .hero-image-container {
-        width: 250px;
-        height: 250px;
-    }
-
-}
 /* Writeups Section */
 .writeups-grid {
     display: grid;
@@ -541,4 +517,387 @@ footer {
 .writeup-link:hover {
     color: #64ffda;
     transform: translateX(5px);
+}
+
+/* ============================================
+   RESPONSIVE MEDIA QUERIES
+   ============================================ */
+
+/* Large Tablets and Small Desktops (1024px and below) */
+@media (max-width: 1024px) {
+    .hero-content h1 {
+        font-size: 3.5rem;
+    }
+
+    .hero-content h2 {
+        font-size: 1.8rem;
+    }
+
+    .hero-wrapper {
+        gap: 3rem;
+    }
+
+    .hero-image-container {
+        width: 300px;
+        height: 300px;
+    }
+
+    section {
+        padding: 5rem 5%;
+    }
+
+    h2 {
+        font-size: 2.2rem;
+    }
+}
+
+/* Tablets (768px and below) */
+@media (max-width: 768px) {
+    /* Navigation */
+    nav {
+        padding: 1rem 3%;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .logo {
+        font-size: 1.3rem;
+    }
+
+    .nav-links {
+        gap: 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Hero Section */
+    .hero {
+        padding: 5rem 3% 3rem;
+        gap: 2rem;
+    }
+
+    .hero-wrapper {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .hero-image-container {
+        width: 250px;
+        height: 250px;
+    }
+
+    .profile-img {
+        top: 40px;
+    }
+
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero-content h2 {
+        font-size: 1.5rem;
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+
+    .cta-button {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    /* Sections */
+    section {
+        padding: 4rem 3%;
+    }
+
+    h2 {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    h2::after {
+        width: 80px;
+    }
+
+    /* Grids */
+    .projects-grid,
+    .writeups-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .cert-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* Cards */
+    .project-card,
+    .writeup-card,
+    .cert-card {
+        padding: 1.5rem;
+    }
+
+    .project-card h3,
+    .writeup-header h3 {
+        font-size: 1.3rem;
+    }
+
+    /* CTF Items */
+    .ctf-item {
+        padding: 1.5rem;
+    }
+
+    .ctf-item:hover {
+        transform: translateX(5px);
+    }
+
+    /* Contact Links */
+    .contact-links {
+        gap: 1rem;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .contact-link {
+        font-size: 1rem;
+        padding: 0.8rem 1.5rem;
+        width: 100%;
+        max-width: 300px;
+        text-align: center;
+    }
+
+    /* Hover effects - reduce on tablets */
+    .project-card:hover,
+    .writeup-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .cert-card:hover {
+        transform: scale(1.02);
+    }
+}
+
+/* Mobile Devices (480px and below) */
+@media (max-width: 480px) {
+    /* Navigation */
+    nav {
+        padding: 0.8rem 2%;
+    }
+
+    .logo {
+        font-size: 1.1rem;
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: space-around;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .nav-links a {
+        padding: 0.3rem;
+    }
+
+    /* Hero Section */
+    .hero {
+        padding: 4rem 2% 2rem;
+        min-height: auto;
+    }
+
+    .hero-image-container {
+        width: 200px;
+        height: 200px;
+    }
+
+    .profile-img {
+        top: 30px;
+        border: 2px solid #00ff9d;
+    }
+
+    .hero-content h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .hero-content h2 {
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .hero-content p {
+        font-size: 0.9rem;
+        padding: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .cta-button {
+        padding: 0.7rem 1.2rem;
+        font-size: 0.9rem;
+    }
+
+    /* Sections */
+    section {
+        padding: 3rem 2%;
+    }
+
+    h2 {
+        font-size: 1.6rem;
+        margin-bottom: 1.5rem;
+    }
+
+    h2::after {
+        width: 60px;
+        height: 2px;
+    }
+
+    /* Grids */
+    .projects-grid,
+    .writeups-grid,
+    .cert-grid {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+    }
+
+    /* Cards */
+    .project-card,
+    .writeup-card,
+    .cert-card,
+    .ctf-item {
+        padding: 1.2rem;
+    }
+
+    .project-card h3,
+    .writeup-header h3,
+    .cert-card h3 {
+        font-size: 1.1rem;
+    }
+
+    .project-card p,
+    .writeup-description {
+        font-size: 0.9rem;
+    }
+
+    /* Writeup Header */
+    .writeup-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+
+    .writeup-category {
+        align-self: flex-start;
+    }
+
+    /* Writeup Footer */
+    .writeup-footer {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    /* Tags */
+    .tag,
+    .writeup-difficulty,
+    .writeup-category {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    /* CTF Items */
+    .ctf-item h3 {
+        font-size: 1.1rem;
+    }
+
+    .ctf-item .rank {
+        font-size: 1rem;
+    }
+
+    .ctf-item:hover {
+        transform: translateX(0);
+        background: rgba(26, 31, 58, 0.8);
+    }
+
+    /* Certification Icon */
+    .cert-icon {
+        font-size: 2.5rem;
+    }
+
+    /* Contact Section */
+    .contact-content p {
+        font-size: 0.9rem;
+    }
+
+    .contact-links {
+        margin-top: 1.5rem;
+    }
+
+    .contact-link {
+        font-size: 0.9rem;
+        padding: 0.7rem 1.2rem;
+    }
+
+    /* Footer */
+    footer {
+        padding: 1.5rem 2%;
+        font-size: 0.9rem;
+    }
+
+    /* Disable hover effects on mobile */
+    .project-card:hover,
+    .writeup-card:hover,
+    .cert-card:hover {
+        transform: none;
+    }
+
+    /* Background grid - make smaller on mobile */
+    .bg-animation::before {
+        background-size: 30px 30px;
+    }
+}
+
+/* Extra Small Devices (360px and below) */
+@media (max-width: 360px) {
+    .logo {
+        font-size: 1rem;
+    }
+
+    .nav-links {
+        font-size: 0.7rem;
+    }
+
+    .hero-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .hero-content h2 {
+        font-size: 1rem;
+    }
+
+    .hero-content p {
+        font-size: 0.85rem;
+    }
+
+    .hero-image-container {
+        width: 180px;
+        height: 180px;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
+
+    section {
+        padding: 2.5rem 1.5%;
+    }
+
+    .project-card,
+    .writeup-card,
+    .cert-card,
+    .ctf-item {
+        padding: 1rem;
+    }
 }
