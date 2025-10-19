@@ -449,11 +449,13 @@ footer {
     border-top: 1px solid rgba(0, 255, 157, 0.2);
 }
 
-/* Writeups Section */
+/* Writeups Section - CHANGED TO VERTICAL LAYOUT */
 .writeups-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .writeup-card {
@@ -501,6 +503,12 @@ footer {
     color: #b8b8d1;
     line-height: 1.6;
     flex: 1;
+}
+
+.writeup-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .writeup-footer {
@@ -661,8 +669,7 @@ footer {
     }
 
     /* Grids */
-    .projects-grid,
-    .writeups-grid {
+    .projects-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
@@ -795,7 +802,6 @@ footer {
 
     /* Grids */
     .projects-grid,
-    .writeups-grid,
     .cert-grid {
         grid-template-columns: 1fr;
         gap: 1.2rem;

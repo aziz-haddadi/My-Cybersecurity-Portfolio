@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QnQSec CTF 2025 - Forensics Writeup</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../../index.html" class="nav-brand">← Back to Portfolio</a>
+            <div class="nav-links">
+                <a href="#overview">Overview</a>
+                <a href="#challenges">Challenges</a>
+                <a href="#tools">Tools</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <img src="assets/images/banner.png" alt="QnQSec CTF Banner" class="hero-image">
+        <div class="hero-content">
+            <h1>QnQSec CTF 2025</h1>
+            <p class="hero-subtitle">Forensics Challenges Writeup</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="overview" class="section">
+            <h2 class="section-title">Overview</h2>
+            <div class="content-card">
+                <p>This writeup documents my approach to solving two complex forensics challenges from QnQSec CTF 2025.</p>
+                
+                <p>The challenges required a combination of:</p>
+                <ul>
+                    <li>Windows memory forensics with Volatility 3</li>
+                    <li>Email forensics and phishing incident response</li>
+                    <li>Windows registry analysis and artifact examination</li>
+                    <li>Malware analysis and behavioral investigation</li>
+                    <li>AmCache forensics for execution tracking</li>
+                    <li>Scheduled task persistence identification</li>
+                    <li>Command & Control infrastructure analysis</li>
+                    <li>Threat intelligence with VirusTotal</li>
+                </ul>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>2</h3>
+                        <p>Challenges Solved</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>8</h3>
+                        <p>Questions Answered</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>10+</h3>
+                        <p>Tools Used</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>100%</h3>
+                        <p>Success Rate</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="challenges" class="section">
+            <h2 class="section-title">Challenges</h2>
+            
+            <div class="challenge-grid">
+                <!-- Challenge Card 1: Masks -->
+                <div class="challenge-card">
+                    <div class="challenge-header">
+                        <span class="challenge-number">01</span>
+                        <h3>Masks</h3>
+                    </div>
+                    <div class="challenge-content">
+                        <p class="challenge-description">
+                            A comprehensive memory forensics challenge investigating a phishing incident. Analyze a memory dump to answer 8 questions tracing the complete attack chain from email delivery to persistence establishment.
+                        </p>
+                        
+                        <h4>Key Findings:</h4>
+                        <ul>
+                            <li>OUTLOOK.exe used for malicious attachment delivery</li>
+                            <li>OST file extraction and email timeline analysis</li>
+                            <li>CVE exploitation through RAR attachment</li>
+                            <li>AmCache forensics for SHA1/SHA256 hash correlation</li>
+                            <li>Shellcode download URL identification</li>
+                            <li>C2 server extraction from process memory</li>
+                            <li>Scheduled task persistence mechanism discovery</li>
+                            <li>Complete attack chain reconstruction</li>
+                        </ul>
+
+                        <h4>Techniques Used:</h4>
+                        <div class="tags">
+                            <span class="tag">Memory Forensics</span>
+                            <span class="tag">Volatility 3</span>
+                            <span class="tag">Email Forensics</span>
+                            <span class="tag">AmCache Analysis</span>
+                            <span class="tag">VirusTotal</span>
+                            <span class="tag">Persistence Hunting</span>
+                        </div>
+
+                        <a href="masks.html" class="btn-primary">Read Full Writeup →</a>
+                    </div>
+                </div>
+
+                <!-- Challenge Card 2: Execution -->
+                <div class="challenge-card">
+                    <div class="challenge-header">
+                        <span class="challenge-number">02</span>
+                        <h3>Execution</h3>
+                    </div>
+                    <div class="challenge-content">
+                        <p class="challenge-description">
+                            A registry forensics challenge involving malicious command identification and malware analysis. Investigate a .reg file to uncover a Living Off The Land (LOTL) attack using Windows bitsadmin utility.
+                        </p>
+                        
+                        <h4>Key Findings:</h4>
+                        <ul>
+                            <li>Malicious bitsadmin command in registry</li>
+                            <li>GitHub used as malware hosting platform</li>
+                            <li>Polyglot file technique - EXE disguised as JPG</li>
+                            <li>Living Off The Land (LOTL) technique abuse</li>
+                            <li>Immediate download and execution pattern</li>
+                            <li>C2 infrastructure identification via VirusTotal</li>
+                            <li>MITRE ATT&CK technique mapping</li>
+                            <li>Complete IOC extraction</li>
+                        </ul>
+
+                        <h4>Techniques Used:</h4>
+                        <div class="tags">
+                            <span class="tag">Registry Forensics</span>
+                            <span class="tag">Malware Analysis</span>
+                            <span class="tag">File Type Analysis</span>
+                            <span class="tag">VirusTotal</span>
+                            <span class="tag">OSINT</span>
+                            <span class="tag">IOC Extraction</span>
+                        </div>
+
+                        <a href="execution.html" class="btn-primary">Read Full Writeup →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tools" class="section">
+            <h2 class="section-title">Tools & Technologies</h2>
+            <div class="tools-grid">
+                <div class="tool-category">
+                    <h3>Memory Forensics</h3>
+                    <ul>
+                        <li>Volatility 3</li>
+                        <li>windows.pslist</li>
+                        <li>windows.filescan</li>
+                        <li>windows.dumpfiles</li>
+                        <li>windows.memmap</li>
+                        <li>windows.amcache</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Email Forensics</h3>
+                    <ul>
+                        <li>pffexport</li>
+                        <li>OST/PST Analysis</li>
+                        <li>Email Timeline Analysis</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Registry & File Analysis</h3>
+                    <ul>
+                        <li>Notepad++</li>
+                        <li>strings utility</li>
+                        <li>file command</li>
+                        <li>sha256sum</li>
+                        <li>Registry Analysis</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Threat Intelligence</h3>
+                    <ul>
+                        <li>VirusTotal</li>
+                        <li>Behavior Analysis</li>
+                        <li>Hash Lookups</li>
+                        <li>OSINT Research</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Key Takeaways</h2>
+            <div class="takeaways-grid">
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">🔍</div>
+                    <h3>Multi-Layered Analysis</h3>
+                    <p>Memory forensics requires analyzing multiple artifact types - process memory, registry hives, scheduled tasks, and file system metadata to reconstruct attack chains.</p>
+                </div>
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">🧠</div>
+                    <h3>AmCache is Critical</h3>
+                    <p>When direct file extraction fails, Windows AmCache provides SHA1 hashes that can be cross-referenced with threat intelligence platforms to obtain complete file information.</p>
+                </div>
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">🔗</div>
+                    <h3>LOTL Techniques</h3>
+                    <p>Attackers increasingly abuse legitimate Windows utilities like bitsadmin to evade detection, blending malicious activity with normal system operations.</p>
+                </div>
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">⚡</div>
+                    <h3>Persistence Evolution</h3>
+                    <p>Modern attackers favor scheduled tasks over traditional registry Run keys, requiring forensic analysts to expand their persistence hunting techniques.</p>
+                </div>
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">💾</div>
+                    <h3>File Masquerading</h3>
+                    <p>Never trust file extensions - attackers disguise executables as images to bypass security filters and evade detection mechanisms.</p>
+                </div>
+                <div class="takeaway-card">
+                    <div class="takeaway-icon">🔐</div>
+                    <h3>Threat Intel Integration</h3>
+                    <p>Integrating VirusTotal and other threat intelligence platforms accelerates analysis by providing behavior data, network IOCs, and malware family attribution.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">MITRE ATT&CK Techniques Identified</h2>
+            <div class="content-card">
+                <h3 style="margin-bottom: 1rem; color: #667eea;">Attack Techniques Mapped</h3>
+                
+                <div class="tools-grid">
+                    <div class="tool-category">
+                        <h3>Initial Access</h3>
+                        <ul>
+                            <li>T1566 - Phishing</li>
+                            <li>Malicious Email Attachment</li>
+                        </ul>
+                    </div>
+                    <div class="tool-category">
+                        <h3>Execution</h3>
+                        <ul>
+                            <li>T1204 - User Execution</li>
+                            <li>T1059 - Command Interpreter</li>
+                        </ul>
+                    </div>
+                    <div class="tool-category">
+                        <h3>Persistence</h3>
+                        <ul>
+                            <li>T1053 - Scheduled Task/Job</li>
+                            <li>Registry Run Keys</li>
+                        </ul>
+                    </div>
+                    <div class="tool-category">
+                        <h3>Defense Evasion</h3>
+                        <ul>
+                            <li>T1197 - BITS Jobs</li>
+                            <li>T1036 - Masquerading</li>
+                        </ul>
+                    </div>
+                    <div class="tool-category">
+                        <h3>Command & Control</h3>
+                        <ul>
+                            <li>T1071 - Application Layer Protocol</li>
+                            <li>HTTP/HTTPS C2</li>
+                        </ul>
+                    </div>
+                    <div class="tool-category">
+                        <h3>Ingress Tool Transfer</h3>
+                        <ul>
+                            <li>T1105 - Remote File Copy</li>
+                            <li>Shellcode Download</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section cta-section">
+            <h2>Want to Learn More?</h2>
+            <p>Check out the detailed writeups for step-by-step walkthroughs of each challenge.</p>
+            <div class="cta-buttons">
+                <a href="masks.html" class="btn-primary">Masks Writeup</a>
+                <a href="execution.html" class="btn-primary">Execution Writeup</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 QnQSec CTF Writeups | Forensics Challenges</p>
+        </div>
+    </footer>
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
+</body>
+<script>
+    // Back to Top Button
+    const backToTopBtn = document.getElementById('backToTop');
+    
+    window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 300) {
+            backToTopBtn.classList.add('show');
+        } else {
+            backToTopBtn.classList.remove('show');
+        }
+    });
+    
+    backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+</script>
+</html>

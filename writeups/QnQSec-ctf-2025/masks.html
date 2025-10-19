@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masks - QnQSec CTF 2025</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">← Back to Overview</a>
+            <div class="nav-links">
+                <a href="#scenario">Scenario</a>
+                <a href="#investigation">Investigation</a>
+                <a href="#questions">Questions</a>
+                <a href="#summary">Summary</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Masks</h1>
+            <p class="hero-subtitle">Memory Forensics & Phishing Incident Response</p>
+            <div class="hero-meta">
+                <span class="badge">Challenge 1</span>
+                <span class="badge">Memory Forensics</span>
+                <span class="badge">Malware Analysis</span>
+                <span class="badge">Incident Response</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="scenario" class="section">
+            <h2 class="section-title">Challenge Scenario</h2>
+            <div class="content-card">
+                <p><strong>Description:</strong> In this challenge, we're provided with a memory dump (.mem) and an instance in order to solve 8 questions and retrieve the flag. We're tasked with investigating a phishing incident where a malicious email attachment compromised a system.</p>
+                
+                <div class="warning">
+                    <strong>Artifacts Provided:</strong> A memory dump file (.mem) captured during/after the phishing attack. We need to answer 8 sequential questions to uncover the complete attack chain.
+                </div>
+            </div>
+        </section>
+
+        <section id="investigation" class="section">
+            <h2 class="section-title">Initial Setup</h2>
+
+            <div class="step-container">
+                <div class="step">
+                    <h3>Forensics Tool: Volatility 3</h3>
+                    <p>Since we have a memory dump, we'll use <strong>Volatility 3</strong> for our analysis. Volatility is the industry-standard framework for memory forensics, allowing us to extract processes, files, registry keys, and other artifacts from memory dumps.</p>
+                    
+                    <div class="finding">
+                        <strong>Primary Tool:</strong> Volatility 3 (vol3)<br>
+                        <strong>Analysis Type:</strong> Windows Memory Forensics<br>
+                        <strong>Goal:</strong> Trace the complete attack chain from email delivery to persistence
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="questions" class="section">
+            <h2 class="section-title">Question-by-Question Analysis</h2>
+
+            <div class="step-container">
+                <!-- Question 1 -->
+                <div class="step">
+                    <h3>Question 1: Process Used to Deliver Malicious Attachment</h3>
+                    <p><strong>Question:</strong> What process was used to deliver the malicious attachment?</p>
+
+                    <p>We start by enumerating all running processes in the memory dump using Volatility's <code>windows.pslist</code> plugin:</p>
+
+                    <div class="command-box">
+                        <div class="command">vol3 -f memory.mem windows.pslist</div>
+                    </div>
+
+                    <img src="assets/images/masks/q1-pslist.png" alt="Process list showing OUTLOOK.exe">
+
+                    <p>From the process list, we identify <strong>OUTLOOK.exe</strong>, which is Microsoft Outlook - the email client responsible for handling emails. Given that the challenge description mentions a phishing incident, this is clearly the process that delivered the malicious attachment.</p>
+
+                    <div class="finding">
+                        <strong>Answer:</strong> <code>OUTLOOK.exe</code>
+                    </div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="step">
+                    <h3>Question 2: Phishing Email Reception Time</h3>
+                    <p><strong>Question:</strong> At what time was the phishing email received?</p>
+
+                    <p>To find when the phishing email was received, we need to extract and examine Outlook's data files (OST files - Offline Storage Table).</p>
+
+                    <h4>Step 1: Enumerate Files</h4>
+                    <p>First, we list all files present in the memory dump and save them for easy searching:</p>
+
+                    <div class="command-box">
+                        <div class="command">vol3 -f memory.mem windows.filescan > files.txt</div>
+                    </div>
+
+                    <h4>Step 2: Locate the OST File</h4>
+                    <p>Open <code>files.txt</code> in a text editor (like Notepad++) and search for ".ost" files. We found the OST file in the user "tyler" directory.</p>
+
+                    <h4>Step 3: Dump the OST File</h4>
+                    <p>Using the offset obtained from filescan, we dump the OST file:</p>
+
+                    <div class="command-box">
+                        <div class="command">vol3 -f memory.mem windows.dumpfiles --virtaddr [OFFSET] --dump-dir ./output</div>
+                        <div class="output"># Rename the dumped file appropriately</div>
+                    </div>
+
+                    <h4>Step 4: Export OST Contents with pffexport</h4>
+                    <p>We use <code>pffexport</code> to extract the contents of the OST file:</p>
+
+                    <div class="command-box">
+                        <div class="command">pffexport dumped_file.ost -t output_folder</div>
+                    </div>
+
+                    <img src="assets/images/masks/q2-email-time.png" alt="Email timestamp from exported OST">
+
+                    <p>After exporting, we examine the exported files and locate the timestamp showing when the malicious email was received.</p>
+
+                    <div class="finding">
+                        <strong>Answer:</strong> [Timestamp from email metadata]
+                    </div>
+                </div>
+
+                <!-- Question 3 -->
+                <div class="step">
+                    <h3>Question 3: CVE Identification</h3>
+                    <p><strong>Question:</strong> What CVE was exploited by the malicious attachment?</p>
+
+                    <p>From the exported OST contents, we found a suspicious <strong>.rar</strong> attachment. Let's analyze it.</p>
+
+                    <h4>Extract Strings from the RAR File</h4>
+                    <div class="command-box">
+                        <div class="command">strings suspicious_attachment.rar > attachment_strings.txt</div>
+                    </div>
+
+                    <p>Examining the strings output revealed a path to a suspicious .exe file which appears to be the malicious loader.</p>
+
+                    <h4>Hash Analysis with VirusTotal</h4>
+                    <p>Calculate the hash and check it on VirusTotal:</p>
+
+                    <div class="command-box">
+                        <div class="command">sha256sum suspicious_attachment.rar</div>
+                    </div>
+
+                    <img src="assets/images/masks/q3-virustotal.png" alt="VirusTotal showing CVE information">
+
+                    <p>VirusTotal confirms the file is malicious and provides information about the CVE being exploited. Cross-referencing with Google searches for the loader path also reveals the CVE.</p>
+
+                    <div class="finding">
+                        <strong>Answer:</strong> CVE-[XXXX-XXXXX]
+                    </div>
+                </div>
+
+                <!-- Question 4 -->
+                <div class="step">
+                    <h3>Question 4: Malicious Loader Path</h3>
+                    <p><strong>Question:</strong> What is the full path of the malicious loader executable?</p>
+
+                    <p>From Question 3's strings analysis of the RAR attachment, we already discovered the full path to the malicious loader.</p>
+
+                    <div class="finding">
+                        <strong>Answer:</strong> [Full path found in strings output]
+                    </div>
+                </div>
+
+                <!-- Question 5 -->
+                <div class="step">
+                    <h3>Question 5: Malicious Loader Hash (The Tricky One!)</h3>
+                    <p><strong>Question:</strong> What is the SHA256 hash of the malicious loader?</p>
+
+                    <h4>❌ First Attempt (Failed)</h4>
+                    <p>Search for the loader file in files.txt, dump it, and calculate SHA256:</p>
+
+                    <div class="command-box">
+                        <div class="command">vol3 -f memory.mem windows.dumpfiles --virtaddr [OFFSET] --dump-dir ./output</div>
+                        <div class="command">sha256sum dumped_loader.exe</div>
+                        <div class="output">Result: Wrong Answer!</div>
+                    </div>
+
+                    <h4>✅ The Solution: AmCache Analysis</h4>
+                    <div class="warning">
+                        <strong>💡 Key Insight: Windows AmCache</strong><br><br>
+                        The <strong>AmCache.hve</strong> is a Windows registry hive that stores detailed information about programs that have been executed or installed on a system. It's extremely valuable in digital forensics for tracking program execution and identifying malware.<br><br>
+                        <strong>Important:</strong> AmCache stores SHA1 hashes of executed programs, which can be cross-referenced with VirusTotal to get the SHA256 hash.
+                    </div>
+
+                    <p>Volatility 3 has a plugin called <code>windows.amcache</code> that extracts this information:</p>
+
+                    <div class="command-box">
+                        <div class="command">vol3 -f memory.mem windows.amcache</div>
+                    </div>
+
+                    <p>This outputs all executed programs with their SHA1 hashes. We locate our malicious loader and get its SHA1 hash.</p>
+
+                    <h4>Cross-Reference with VirusTotal</h4>
+                    <p>Search VirusTotal with the SHA1 hash to obtain the complete file information, including the SHA256 hash.</p>
+
+                    <div class="finding">
+                        <strong>Answer:</strong> [SHA256 hash from VirusTotal using AmCache SHA1]
+                    </div>
+                </div>
+
+                <!-- Question 6 -->
+                <div class="step">
+                    <h3>Question 6: Shellcode URL</h3>
+                    <p><strong>Question:</strong> What is the URL from which the shellcode was downloaded?</p>
+
+                    <p>With the malicious loader's hash identified, we can use VirusTotal's <strong>Behavior</strong> tab to see the malware's dynamic analysis results.</p>
+
+                    <h4>VirusTotal Behavior Analysis</h4>
+                    <p>Navigate to the Behavior tab on VirusTotal for the loader's hash. This shows:</p>
+                    <ul>
+                        <li>Network connections and DNS requests</li>
+                        <li>File operations</li>
+                        <li>Registry modifications</li>
+                        <li>Downloaded or dropped files</li>
+                    </ul>
+
+                    <p>In the network activity section, we find the URL from which the malware downloaded its shellcode payload.</p>
+
+                    <div class="finding">
+                        <strong>Answer:</strong> [Shellcode download URL from behavior analysis]
+                    </div>
+                </div>
+
+                <!-- Question 7 -->
+                <div class="step">
+                    <h3>Question 7: Command & Control Server</h3>
+                    <p><strong>Question:</strong> What is the C2 (Command and Control) IP address and port?</p>
+
+                    <p>The malicious loader spawned a process called <code>update.exe</code> (PID: 2484). To find the C2 server, we need to analyze this process's memory.</p>
+
+                    <h4>Step 1: Dump Process Memory</h4>
+                    <div class="command-box">
+                        <div class="command">vol3 -f memory.mem windows.memmap --pid 2484 --dump-dir ./update_dump</div>
+                    </div>
+
+                    <h4>Step 2: Extract Strings</h4>
+                    <div class="command-box">
+                        <div class="command">strings update_dump/* > update_strings.txt</div>
+                    </div>
+
+                    <h4>Step 3: Search for Network Indicators</h4>
+                    <p>Searching through the strings file for IP addresses, we identify the C2 IP address. For the port, we found a port scanning command that referenced three potential ports. Testing these ports revealed which one was the active C2 port.</p>
+
+                    <div class="finding">
+                        <strong>Answer:</strong> [C2_IP]:[PORT]<br>
+                        <em>Note: This might be an unintended solution, but it worked!</em>
+                    </div>
+                </div>
+
+                <!-- Question 8 -->
+                <div class="step">
+                    <h3>Question 8: Persistence Mechanism</h3>
+                    <p><strong>Question:</strong> What command did the attacker use for persistence?</p>
+
+                    <h4>❌ Initial Attempts</h4>
+                    <p><strong>1. Process Memory Search:</strong> Searched update.exe memory for PowerShell commands - no persistence found.</p>
+                    
+                    <p><strong>2. Traditional Registry Keys:</strong> Checked common persistence locations:</p>
+                    <ul>
+                        <li>HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run</li>
+                        <li>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run</li>
+                        <li>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce</li>
+                        <li>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon</li>
+                    </ul>
+                    <p>Result: No malicious entries found!</p>
+
+                    <h4>✅ The Breakthrough: Scheduled Tasks</h4>
+                    <div class="warning">
+                        <strong>💡 Persistence via Scheduled Tasks</strong><br><br>
+                        After hours of searching, we pivoted to examining Windows Scheduled Tasks - a common but often overlooked persistence technique. Scheduled tasks are stored as XML files in <code>C:\Windows\System32\Tasks</code>.
+                    </div>
+
+                    <h4>Step 1: Search for Task Files</h4>
+                    <p>Search files.txt for entries in the Tasks directory:</p>
+
+                    <div class="command-box">
+                        <div class="command"># Search pattern: Windows\System32\Tasks</div>
+                    </div>
+
+                    <h4>Step 2: Identify Suspicious Task</h4>
+                    <p>We found a suspicious scheduled task named <strong>MicrosoftUpdate</strong>. This is suspicious because:</p>
+                    <ul>
+                        <li>It mimics legitimate Windows Update naming (social engineering)</li>
+                        <li>The context involves a loader named "update.exe"</li>
+                        <li>Legitimate Microsoft tasks have different naming patterns</li>
+                    </ul>
+
+                    <h4>Step 3: Dump and Analyze</h4>
+                    <div class="command-box">
+                        <div class="command">vol3 -f memory.mem windows.dumpfiles --virtaddr [TASK_OFFSET] --dump-dir ./tasks</div>
+                    </div>
+
+                    <img src="assets/images/masks/q8-scheduled-task.png" alt="Malicious scheduled task XML">
+
+                    <p>Reading the XML contents, we find the <code>&lt;Command&gt;</code> element containing the persistence command.</p>
+
+                    <div class="finding">
+                        <strong>Answer:</strong> [Command from scheduled task XML]
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="summary" class="section">
+            <h2 class="section-title">Challenge Complete! 🎉</h2>
+            
+            <div class="hash-display">
+                🚩 FLAG: [Flag received after answering all 8 questions]
+            </div>
+
+            <h3 style="margin-top: 2rem; color: #667eea;">Investigation Summary</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>8</h3>
+                    <p>Questions Solved</p>
+                </div>
+                <div class="stat-card">
+                    <h3>5+</h3>
+                    <p>Volatility Plugins</p>
+                </div>
+                <div class="stat-card">
+                    <h3>AmCache</h3>
+                    <p>Key Artifact</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Scheduled Task</h3>
+                    <p>Persistence Method</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 2rem; color: #667eea;">Key Takeaways</h3>
+            <ul style="margin-top: 1rem; line-height: 1.8;">
+                <li><strong>Memory forensics is multi-layered:</strong> Different artifacts (process memory, registry hives, scheduled tasks) provide different pieces of the puzzle.</li>
+                <li><strong>AmCache is invaluable:</strong> When direct file extraction fails, Windows artifacts like AmCache can provide the hashes needed for further investigation.</li>
+                <li><strong>VirusTotal enhances analysis:</strong> Cross-referencing hashes with threat intelligence platforms accelerates investigation and provides behavioral insights.</li>
+                <li><strong>Think beyond common persistence:</strong> Attackers increasingly use scheduled tasks instead of traditional Run keys.</li>
+                <li><strong>Context matters:</strong> Names like "MicrosoftUpdate" and "update.exe" provide clues when analyzed in context.</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Tools & Techniques</h2>
+            <div class="tools-grid">
+                <div class="tool-category">
+                    <h3>Memory Forensics</h3>
+                    <ul>
+                        <li>Volatility 3</li>
+                        <li>windows.pslist</li>
+                        <li>windows.filescan</li>
+                        <li>windows.dumpfiles</li>
+                        <li>windows.memmap</li>
+                        <li>windows.amcache</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Email Forensics</h3>
+                    <ul>
+                        <li>pffexport</li>
+                        <li>OST/PST Analysis</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Malware Analysis</h3>
+                    <ul>
+                        <li>VirusTotal</li>
+                        <li>Hash Analysis</li>
+                        <li>Behavior Analysis</li>
+                        <li>strings utility</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h3>Persistence Analysis</h3>
+                    <ul>
+                        <li>Registry Analysis</li>
+                        <li>Scheduled Tasks</li>
+                        <li>Windows Artifacts</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section cta-section">
+            <h2>Explore More Challenges</h2>
+            <p>Check out other forensics writeups from QnQSec CTF 2025.</p>
+            <div class="cta-buttons">
+                <a href="execution.html" class="btn-primary">Execution →</a>
+                <a href="index.html" class="btn-primary">Back to Overview</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 QnQSec CTF Writeups | Forensics Challenges</p>
+        </div>
+    </footer>
+
+    <button class="scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const scrollBtn = document.querySelector('.scroll-top');
+            if (window.pageYOffset > 300) {
+                scrollBtn.classList.add('visible');
+            } else {
+                scrollBtn.classList.remove('visible');
+            }
+        });
+    </script>
+</body>
+</html>
