@@ -74,7 +74,7 @@
                     <p>We start by enumerating all running processes in the memory dump using Volatility's <code>windows.pslist</code> plugin:</p>
 
                     <div class="command-box">
-                        <div class="command">vol3 -f memory.mem windows.pslist</div>
+                        <div class="command">python3 ~/volatility3/vol.py -f Masks/memdump.mem windows.pslist</div>
                     </div>
 
                     <img src="assets/images/masks/q1-pslist.png" alt="Process list showing OUTLOOK.exe">
