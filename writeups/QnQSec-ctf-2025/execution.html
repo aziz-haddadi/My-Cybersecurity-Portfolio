@@ -137,7 +137,7 @@
 
                     <div class="command-box">
                         <div class="command">sha256sum image.jpg</div>
-                        <div class="output">[SHA256_HASH_VALUE]</div>
+                        <div class="output">282647bcd05fd5bec44bd914cc8542d0526e677956d935ba41c2149471047bfc</div>
                     </div>
 
                     <p>Now we search this hash on <strong>VirusTotal</strong> to gather intelligence about this malware.</p>
@@ -162,6 +162,7 @@
 
                     <div class="finding">
                         <strong>Technique Identified:</strong><br><br>
+                        <img src="assets/images/execution/technique.png" alt="Technique ">
                         <strong>Polyglot Files / File Smuggling</strong><br><br>
                         This technique involves:
                         <ul style="margin-top: 0.5rem;">
@@ -191,8 +192,8 @@
 
                     <div class="finding">
                         <strong>C2 Infrastructure Identified:</strong><br>
-                        <strong>IP Address:</strong> [C2_IP_ADDRESS]<br>
-                        <strong>Port:</strong> [C2_PORT]
+                        <strong>IP Address:</strong>  13.59.15.185<br>
+                        <strong>Port:</strong> 8021
                     </div>
 
                     <p>This information is crucial for network defenders to block malicious traffic and prevent communication with the attacker's infrastructure.</p>
@@ -252,7 +253,7 @@
                 <div class="step">
                     <h3>Challenge Complete! 🎉</h3>
                     <div class="hash-display">
-                        🚩 FLAG: [Flag obtained after analysis]
+                        🚩 FLAG: QnQSec{T1546.012_13.59.15.185:8021}
                     </div>
 
                     <p style="margin-top: 2rem;">We successfully analyzed the registry file, identified the malicious command, downloaded and analyzed the malware, identified the attack technique, and extracted the C2 infrastructure information!</p>

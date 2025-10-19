@@ -94,20 +94,19 @@
                     <p>To find when the phishing email was received, we need to extract and examine Outlook's data files (OST files - Offline Storage Table).</p>
 
                     <h4>Step 1: Enumerate Files</h4>
-                    <p>First, we list all files present in the memory dump and save them for easy searching:</p>
+                    <p> we list all ost files present in the memory dump</p>
 
                     <div class="command-box">
-                        <div class="command">vol3 -f memory.mem windows.filescan > files.txt</div>
+                        <div class="command">python3 ~/volatility3/vol.py -f Masks/memdump.mem windows.filescan | grep -i "\.ost"</div>
                     </div>
+                     <img src="assets/images/masks/q3-output-of-filescan.png" alt="output of filescan command">
 
-                    <h4>Step 2: Locate the OST File</h4>
-                    <p>Open <code>files.txt</code> in a text editor (like Notepad++) and search for ".ost" files. We found the OST file in the user "tyler" directory.</p>
-
+                    
                     <h4>Step 3: Dump the OST File</h4>
                     <p>Using the offset obtained from filescan, we dump the OST file:</p>
 
                     <div class="command-box">
-                        <div class="command">vol3 -f memory.mem windows.dumpfiles --virtaddr [OFFSET] --dump-dir ./output</div>
+                        <div class="command">python3 ~/volatility3/vol.py -f Masks/memdump.mem windows.dumpfiles --virtaddr 0xe0002a1e9ec0 </div>
                         <div class="output"># Rename the dumped file appropriately</div>
                     </div>
 
@@ -123,7 +122,7 @@
                     <p>After exporting, we examine the exported files and locate the timestamp showing when the malicious email was received.</p>
 
                     <div class="finding">
-                        <strong>Answer:</strong> [Timestamp from email metadata]
+                        <strong>Answer:</strong> 2025-09-06 15:24:45
                     </div>
                 </div>
 
@@ -153,7 +152,7 @@
                     <p>VirusTotal confirms the file is malicious and provides information about the CVE being exploited. Cross-referencing with Google searches for the loader path also reveals the CVE.</p>
 
                     <div class="finding">
-                        <strong>Answer:</strong> CVE-[XXXX-XXXXX]
+                        <strong>Answer:</strong> CVE-2025-8088
                     </div>
                 </div>
 
@@ -165,7 +164,7 @@
                     <p>From Question 3's strings analysis of the RAR attachment, we already discovered the full path to the malicious loader.</p>
 
                     <div class="finding">
-                        <strong>Answer:</strong> [Full path found in strings output]
+                        <strong>Answer:</strong> C:\Users\tyler\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\update.exe    
                     </div>
                 </div>
 
@@ -178,7 +177,7 @@
                     <p>Search for the loader file in files.txt, dump it, and calculate SHA256:</p>
 
                     <div class="command-box">
-                        <div class="command">vol3 -f memory.mem windows.dumpfiles --virtaddr [OFFSET] --dump-dir ./output</div>
+                        <div class="command">vol3 -f memory.mem windows.dumpfiles --virtaddr 0xe0002ab8ff20</div>
                         <div class="command">sha256sum dumped_loader.exe</div>
                         <div class="output">Result: Wrong Answer!</div>
                     </div>
@@ -193,8 +192,9 @@
                     <p>Volatility 3 has a plugin called <code>windows.amcache</code> that extracts this information:</p>
 
                     <div class="command-box">
-                        <div class="command">vol3 -f memory.mem windows.amcache</div>
+                        <div class="command">python3 ~/volatility3/vol.py -f Masks/memdump.mem windows.amcache</div>
                     </div>
+                    <img src="assets/images/masks/amcache-sha1.png" alt="amcache output ">
 
                     <p>This outputs all executed programs with their SHA1 hashes. We locate our malicious loader and get its SHA1 hash.</p>
 
@@ -202,7 +202,7 @@
                     <p>Search VirusTotal with the SHA1 hash to obtain the complete file information, including the SHA256 hash.</p>
 
                     <div class="finding">
-                        <strong>Answer:</strong> [SHA256 hash from VirusTotal using AmCache SHA1]
+                        <strong>Answer:</strong> fdccd1cf5bc43b638e530cdccd0e284f018e3239f65a9896e2c02246b3e1a6af
                     </div>
                 </div>
 
@@ -223,9 +223,10 @@
                     </ul>
 
                     <p>In the network activity section, we find the URL from which the malware downloaded its shellcode payload.</p>
+                    <img src="assets/images/masks/q6-Memory-patern-url.png" alt="Memory patern urls">
 
                     <div class="finding">
-                        <strong>Answer:</strong> [Shellcode download URL from behavior analysis]
+                        <strong>Answer:</strong> http://121.109.119.121:8251/73317278.bin
                     </div>
                 </div>
 
@@ -238,20 +239,23 @@
 
                     <h4>Step 1: Dump Process Memory</h4>
                     <div class="command-box">
-                        <div class="command">vol3 -f memory.mem windows.memmap --pid 2484 --dump-dir ./update_dump</div>
+                        <div class="command">python3 ~/volatility3/vol.py  -f Masks/memory.mem windows.memmap --pid 2484 --dump</div>
                     </div>
 
                     <h4>Step 2: Extract Strings</h4>
                     <div class="command-box">
-                        <div class="command">strings update_dump/* > update_strings.txt</div>
+                        <div class="command">strings pid.2484.dmp > dump.txt </div>
                     </div>
 
                     <h4>Step 3: Search for Network Indicators</h4>
-                    <p>Searching through the strings file for IP addresses, we identify the C2 IP address. For the port, we found a port scanning command that referenced three potential ports. Testing these ports revealed which one was the active C2 port.</p>
+                    <p>Searching through the strings file for IP addresses, we identify the C2 IP address </p>
+                    <img src="assets/images/masks/q7-C2-ip.png" alt="the C2 IP">
+                    <p>For the port, we found a port scanning command that referenced three potential ports. Testing these ports revealed which one was the active C2 port.</p>
+                    <img src="assets/images/masks/q7-C2-port.png" alt="the C2 PORT ">
 
                     <div class="finding">
-                        <strong>Answer:</strong> [C2_IP]:[PORT]<br>
-                        <em>Note: This might be an unintended solution, but it worked!</em>
+                        <strong>Answer:</strong> 121.109.119.158:443<br>
+                        <em>Note: This might be an unintended solution, but it worked! 😝</em>
                     </div>
                 </div>
 
@@ -295,7 +299,7 @@
 
                     <h4>Step 3: Dump and Analyze</h4>
                     <div class="command-box">
-                        <div class="command">vol3 -f memory.mem windows.dumpfiles --virtaddr [TASK_OFFSET] --dump-dir ./tasks</div>
+                        <div class="command">python3 ~/volatility3/vol.py -f Masks/memdump.mem windows.dumpfiles --virtaddr 0xe0002925cf20</div>
                     </div>
 
                     <img src="assets/images/masks/q8-scheduled-task.png" alt="Malicious scheduled task XML">
@@ -303,7 +307,7 @@
                     <p>Reading the XML contents, we find the <code>&lt;Command&gt;</code> element containing the persistence command.</p>
 
                     <div class="finding">
-                        <strong>Answer:</strong> [Command from scheduled task XML]
+                        <strong>Answer:</strong> C:\users\public\tmp.cmd
                     </div>
                 </div>
             </div>
@@ -312,9 +316,7 @@
         <section id="summary" class="section">
             <h2 class="section-title">Challenge Complete! 🎉</h2>
             
-            <div class="hash-display">
-                🚩 FLAG: [Flag received after answering all 8 questions]
-            </div>
+            
 
             <h3 style="margin-top: 2rem; color: #667eea;">Investigation Summary</h3>
             <div class="stats-grid">
